@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HA Click-to-Call – Settings</title>
+  <link rel="icon" href="icons/icon-32.png">
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #5b6475; --border: #dde1e8;
+      --accent: #185fa5; --accent-hover: #134d86; --accent-soft: #e6f1fb; --on-accent: #fff;
+      --ok: #2e7d32; --err: #c62828; --code-bg: #f1f3f6;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14171c; --card: #1c2027; --text: #e7eaf0; --muted: #9aa3b2; --border: #2e3440;
+        --accent: #5aa2e6; --accent-hover: #7bb6ee; --accent-soft: #1b2e44; --on-accent: #0b1a2a;
+        --ok: #66bb6a; --err: #ef5350; --code-bg: #252a33;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, sans-serif; }
+    main { max-width: 820px; margin: 0 auto; padding: 32px 16px 48px; }
+    header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+    header img { width: 56px; height: 56px; }
+    h1 { margin: 0; font-size: 22px; font-weight: 600; }
+    header p { margin: 2px 0 0; color: var(--muted); }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+    .num { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent);
+           font-size: 13px; display: grid; place-items: center; }
+    p, ol, ul { margin: 0 0 12px; }
+    ol, ul { padding-left: 20px; }
+    li { margin-bottom: 4px; }
+    .muted { color: var(--muted); }
+    code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+    label { display: block; font-weight: 600; margin: 14px 0 4px; }
+    .hint { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+    input[type=text], input[type=url] { width: 100%; padding: 8px 10px; font: inherit; color: var(--text); background: var(--card);
+           border: 1px solid var(--border); border-radius: 8px; }
+    input:focus-visible, button:focus-visible, a.button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    input:disabled { color: var(--muted); background: var(--code-bg); }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row input { flex: 1; min-width: 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+    button, a.button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font: inherit; font-weight: 500;
+           border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer;
+           text-decoration: none; white-space: nowrap; }
+    button:hover, a.button:hover { border-color: var(--muted); }
+    button.primary, a.button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    button.primary:hover, a.button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+    .preview { margin-top: 4px; padding: 8px 10px; background: var(--code-bg); border-radius: 8px; word-break: break-all; }
+    .status { min-height: 1.5em; font-size: 13px; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 0; }
+    .check input { margin-top: 3px; }
+    .split { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .split ol { margin: 0; }
+    .shot { display: block; width: 100%; border: 1px solid var(--border); border-radius: 8px; }
+        @media (max-width: 680px) { .split { grid-template-columns: 1fr; } }
+    button:disabled, input:disabled + button { cursor: default; }
+    button:disabled { opacity: .5; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="icons/icon.svg" alt="">
+    <div>
+      <h1>HA Click-to-Call</h1>
+      <p>Dial a number on your phone from your browser.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">1</span>Add the blueprint to Home Assistant</h2>
+    <a class="button primary" id="importBlueprint" target="_blank" rel="noopener">Open in Home Assistant ↗</a>
+  </section>
+
+  <section class="split">
+    <div>
+      <h2><span class="num">2</span>Create the automation</h2>
+      <ol>
+        <li>Open the <b>HA Click-to-Call</b> blueprint and select <b>Create automation</b>.</li>
+        <li><b>Android phone:</b> pick your phone. It's listed once the
+          <a href="https://companion.home-assistant.io/docs/getting_started/" target="_blank" rel="noopener">Home Assistant app</a>
+          is installed on it.</li>
+        <li><b>Screen-on sensor</b> (optional): pick your phone's <b>Interactive</b> sensor to clear the notification once you see the dialer.</li>
+        <li><b>Webhook ID:</b> paste this:
+          <input id="webhookId" type="text" class="mono" spellcheck="false" aria-label="Webhook ID" style="margin-top:6px">
+          <div class="actions" style="margin-top:6px">
+            <button id="copyId" type="button">Copy</button>
+            <button id="newId" type="button" title="Make a new ID">New ID</button>
+          </div>
+        </li>
+        <li>Select <b>Save</b>.</li>
+      </ol>
+    </div>
+    <img class="shot" src="screenshots/ha-automation.png" alt="The automation in Home Assistant with the phone and webhook ID filled in.">
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>Set up your phone</h2>
+    <p>Allow the Home Assistant app to <b>Display over other apps</b>. Android needs this before an app can open
+      the dialer for you. Without it, your phone still buzzes, and you tap the notification to open the dialer.</p>
+    <p>On your phone, go to <b>Settings</b> &gt; <b>Apps</b> &gt; <b>Home Assistant</b>, then turn on
+      <b>Display over other apps</b> (called <b>Appear on top</b> on some phones). The Home Assistant app may also
+      open this screen for you the first time a number arrives.</p>
+    <img class="shot" src="screenshots/phone-overlay-setting.png" style="max-width:520px;border:0"
+      alt="App info for Home Assistant with Display over other apps outlined, then the Allow display over other apps switch turned on.">
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>Connect your desktop</h2>
+    <label for="haAddress">Home Assistant address
+      <span class="hint">For example your Nabu Casa URL, <code>https://xxxx.ui.nabu.casa</code></span>
+    </label>
+    <div class="row">
+      <input id="haAddress" type="url" spellcheck="false" placeholder="https://xxxx.ui.nabu.casa">
+      <button id="save" class="primary" type="button">Save</button>
+    </div>
+    <div class="status" id="saveStatus" role="status" style="margin-top:6px"></div>
+    <div class="preview mono muted" id="urlPreview" hidden></div>
+
+    <label for="testNumber">Try it</label>
+    <div class="row">
+      <input id="testNumber" type="text" placeholder="(416) 555-0199" disabled>
+      <button id="test" type="button" disabled>Send to phone</button>
+    </div>
+    <div class="status" id="testStatus" role="status" style="margin-top:6px"></div>
+  </section>
+
+  <section>
+    <h2>Settings</h2>
+    <label class="check"><input id="linkify" type="checkbox">
+      <span>Make phone numbers without a <code>tel:</code> link clickable
+        <span class="hint">Phone number links (<code>href="tel:…"</code>) always work. This also turns numbers that are only
+          text, like <code>(905) 786 0234</code>, into links. Reload a page to see the change.</span></span>
+    </label>
+  </section>
+
+</main>
+<script src="options.js"></script>
+</body>
+</html>

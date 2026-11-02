@@ -1,0 +1,158 @@
+blueprint:
+  name: HA Click-to-Call
+  description: >-
+    Dial phone numbers from your desktop browser on your Android phone. Works
+    with the HA Click-to-Call browser extension: it sends the number here, and
+    the Home Assistant Companion app on your phone buzzes and opens the dialer.
+
+
+    You need an Android phone with the Home Assistant Companion app installed,
+    allowed to "Display over other apps" (sometimes called "Appear on top").
+  domain: automation
+  author: dk1
+  source_url: https://github.com/dk1/ha-click-to-call/blob/main/blueprints/ha_click_to_call.yaml
+  homeassistant:
+    min_version: "2024.10.0"
+  input:
+    phone_section:
+      name: Phone
+      icon: mdi:cellphone
+      input:
+        phone:
+          name: Android phone
+          description: Your Android phone with the Home Assistant Companion app.
+          selector:
+            device:
+              filter:
+                - integration: mobile_app
+        screen_sensor:
+          name: Screen-on sensor (optional)
+          description: >-
+            Your phone's "Interactive" sensor. The notification then clears once
+            the screen is on and you can see the dialer.
+          default: ""
+          selector:
+            entity:
+              filter:
+                - integration: mobile_app
+                  domain: binary_sensor
+    webhook_section:
+      name: Webhook
+      icon: mdi:webhook
+      input:
+        webhook_id:
+          name: Webhook ID
+          description: >-
+            Copy it from the extension's settings page. Anyone who knows it can
+            open your dialer, so keep it private.
+          selector:
+            text:
+        local_only:
+          name: Only accept calls from the local network
+          description: Turn off if your desktop uses a remote address, such as your Nabu Casa URL.
+          default: false
+          selector:
+            boolean:
+    behaviour_section:
+      name: Behavior
+      icon: mdi:cog
+      collapsed: true
+      input:
+        dial_action:
+          name: Action
+          default: DIAL
+          selector:
+            select:
+              options:
+                - label: Open the dialer with the number (tap to call)
+                  value: DIAL
+                - label: Place the call immediately (needs Phone permission in the app)
+                  value: CALL
+        screen_wait:
+          name: Wait for screen on
+          description: If the screen doesn't turn on within this time, the notification stays.
+          default: 10
+          selector:
+            number:
+              min: 0
+              max: 60
+              unit_of_measurement: seconds
+        clear_after:
+          name: Clear notification after (screen on)
+          default: 4
+          selector:
+            number:
+              min: 0
+              max: 60
+              unit_of_measurement: seconds
+        notification_timeout:
+          name: Notification timeout (screen off)
+          default: 120
+          selector:
+            number:
+              min: 10
+              max: 3600
+              unit_of_measurement: seconds
+
+# A new number replaces the notification (same tag), so drop the old run's wait.
+mode: restart
+
+variables:
+  screen_sensor: !input screen_sensor
+  dial_action: !input dial_action
+  notification_timeout: !input notification_timeout
+
+triggers:
+  - trigger: webhook
+    webhook_id: !input webhook_id
+    allowed_methods: [POST]
+    local_only: !input local_only
+
+conditions:
+  # Only digits with an optional + reach the intent. Read straight from
+  # trigger.json: a rendered variable would turn "+1416…" into an integer.
+  - condition: template
+    value_template: >-
+      {{ (trigger.json | default({})).number | default('') | string
+         is match('^\+?[0-9]{3,15}$') }}
+
+actions:
+  # Sent through the phone's device, not notify.mobile_app_<name>, so renaming the
+  # phone doesn't break it.
+  - domain: mobile_app
+    type: notify
+    device_id: !input phone
+    title: Number from browser
+    message: "Dialing {{ trigger.json.number }}"
+    data:
+      tag: click-to-call
+      channel: Click-to-Call
+      importance: high
+      vibrationPattern: "0, 150, 100, 150"
+      timeout: "{{ notification_timeout }}"
+      clickAction: "intent:{{ trigger.json.number }}#Intent;action=android.intent.action.DIAL;scheme=tel;end"
+  - domain: mobile_app
+    type: notify
+    device_id: !input phone
+    message: command_activity
+    data:
+      intent_action: "android.intent.action.{{ dial_action }}"
+      intent_uri: "tel:{{ trigger.json.number }}"
+  # The dialer launch or the buzz often wakes the screen a few seconds later,
+  # so wait for it rather than checking once.
+  - if:
+      - condition: template
+        value_template: "{{ screen_sensor != '' }}"
+    then:
+      - wait_template: "{{ is_state(screen_sensor, 'on') }}"
+        timeout:
+          seconds: !input screen_wait
+        continue_on_timeout: false
+      - delay:
+          seconds: !input clear_after
+      - domain: mobile_app
+        type: notify
+        device_id: !input phone
+        message: clear_notification
+        data:
+          tag: click-to-call

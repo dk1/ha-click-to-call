@@ -1,0 +1,17 @@
+# Throwaway Home Assistant for screenshots and testing, so no real house data
+# ends up in the docs.
+#   docker compose -f dev/docker-compose.yml up -d     # start (http://localhost:8125)
+#   docker compose -f dev/docker-compose.yml down      # stop
+# dev/config is git-ignored; delete it to start from a fresh onboarding.
+services:
+  homeassistant:
+    container_name: ha-click-to-call-dev
+    image: ghcr.io/home-assistant/home-assistant:2026.9.2
+    ports:
+      - "8125:8123"
+    volumes:
+      - ./config:/config
+      - ../blueprints:/config/blueprints/automation/dk1:ro
+    environment:
+      - TZ=America/Toronto
+    restart: unless-stopped
