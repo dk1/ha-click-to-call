@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # Screenshot and store-image tooling only; nothing here ships in the extension.
+  - package-ecosystem: npm
+    directory: /dev
+    schedule:
+      interval: monthly
+    groups:
+      dev:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
