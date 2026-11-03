@@ -9,6 +9,6 @@
     "store": "node store-assets.mjs"
   },
   "devDependencies": {
-    "puppeteer-core": "^24.43.1"
+    "puppeteer-core": "^25.16.0"
   }
 }
