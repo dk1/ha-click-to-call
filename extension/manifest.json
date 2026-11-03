@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "HA Click-to-Call",
   "version": "1.0.0",
-  "description": "Click a phone number in your desktop browser to dial it on your Android phone, through Home Assistant.",
+  "description": "Dial phone numbers from your browser on your Android phone, through Home Assistant.",
+  "homepage_url": "https://github.com/dk1/ha-click-to-call",
   "permissions": [
     "storage",
     "contextMenus"
@@ -48,7 +49,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "ha-click-to-call@local",
+      "id": "ha-click-to-call@dk1.github.io",
       "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": [

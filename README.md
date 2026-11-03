@@ -91,14 +91,16 @@ The automation's **Behavior** section lets you place the call straight away inst
 (the Home Assistant app then needs the Phone permission), and change how long the notification stays.
 
 ## Privacy
-The extension stores only your webhook URL. It never sees a Home Assistant password or token. Anyone who knows
+The extension stores only your Home Assistant address and webhook ID, and sends only the number you click, to
+your Home Assistant. It never sees a Home Assistant password or token. Anyone who knows
 the webhook ID can open your phone's dialer, so treat it like a password. The automation accepts digits only,
-so nothing else can be sent to your phone.
+so nothing else can be sent to your phone. See the [privacy policy](PRIVACY.md).
 
 ## Development
 Screenshots in `docs/screenshots` are made by `dev/screenshots.mjs` against a throwaway Home Assistant in Docker
 and the Android emulator, so no real data ends up in them. See the comments at the top of `dev/screenshots.mjs`
-and `dev/docker-compose.yml`.
+and `dev/docker-compose.yml`. `npm run store` in `dev` makes the store zip and listing
+images; see [`store/LISTING.md`](store/LISTING.md).
 
 `npx web-ext lint --source-dir extension` reports one expected warning about `background.service_worker`: Chrome uses it, Firefox
 uses `background.scripts`.

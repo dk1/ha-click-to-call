@@ -5,3 +5,4 @@ dev/.chrome/
 dev/.build/
 dev/.credentials
 .DS_Store
+store/dist/
