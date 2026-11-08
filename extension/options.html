@@ -63,8 +63,8 @@
     button:disabled, input:disabled + button { cursor: default; }
     button:disabled { opacity: .5; }
     a { color: var(--accent); }
-    a.badge { display: inline-block; border-radius: 24px; }
-    a.badge img { display: block; height: 40px; }
+    a.badge { display: inline-block; margin-top: 6px; border-radius: 16px; }
+    a.badge img { display: block; height: 32px; }
     a.badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   </style>
 </head>
@@ -91,9 +91,7 @@
       <ol>
         <li>Select <b>HA Click-to-Call</b> in the
           <a href="https://my.home-assistant.io/redirect/blueprints/" target="_blank" rel="noopener">blueprint list</a>.</li>
-        <li><b>Android phone:</b> select your phone. It's listed once the
-          <a href="https://companion.home-assistant.io/docs/getting_started/" target="_blank" rel="noopener">Home Assistant app</a>
-          is installed on it.</li>
+        <li><b>Android phone:</b> select your phone.</li>
         <li><b>Screen-on sensor</b> (optional): select your phone's <b>Interactive</b> sensor to clear the notification once you see the dialer.</li>
         <li><b>Webhook ID:</b> paste this:
           <input id="webhookId" type="text" class="mono" spellcheck="false" aria-label="Webhook ID" style="margin-top:6px">
