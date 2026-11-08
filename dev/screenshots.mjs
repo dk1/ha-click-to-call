@@ -98,7 +98,7 @@ async function desktop() {
   await highlight(page, ["#copyId"]);
   await shot(page, "settings-step2", await sections[1].boundingBox());
   await highlight(page, ["#haAddress", "#save"]);
-  await shot(page, "settings-step4", await sections[3].boundingBox());
+  await shot(page, "settings-step3", await sections[2].boundingBox());
   await settings(HA);
 
   // A web page with a detected number, then the "Sent" message after clicking it.

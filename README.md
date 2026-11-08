@@ -28,16 +28,16 @@ from the extension's settings.
 
 <img src="docs/screenshots/settings-step2.png" width="640" alt="Step 2 in the extension's settings, with the webhook ID and a Copy button.">
 
-**3. Set up your phone.** Allow the Home Assistant app to **Display over other apps**: on your phone, go to
+**3. Connect the extension.** Enter your Home Assistant address, such as your Nabu Casa URL, and click
+**Save**, then **Send to phone** to try it.
+
+<img src="docs/screenshots/settings-step3.png" width="440" alt="Step 3 in the extension's settings, with a Nabu Casa address and the Save button.">
+
+**4. Set up your phone.** Allow the Home Assistant app to **Display over other apps**: on your phone, go to
 **Settings** > **Apps** > **Home Assistant** (called **Appear on top** on some phones). Android needs this
 before an app can open the dialer for you. Without it, you can tap the notification to open the dialer.
 
 <img src="docs/screenshots/phone-overlay-setting.png" width="520" alt="App info for Home Assistant with Display over other apps outlined, then the Allow display over other apps switch turned on.">
-
-**4. Connect the extension.** Enter your Home Assistant address, such as your Nabu Casa URL, and click
-**Save**, then **Send to phone** to try it.
-
-<img src="docs/screenshots/settings-step4.png" width="440" alt="Step 4 in the extension's settings, with a Nabu Casa address and the Save button.">
 
 ## Install
 Store listings for Chrome, Edge and Firefox are on the way. Until then, or if you'd rather not install from a

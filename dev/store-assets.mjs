@@ -51,7 +51,7 @@ const screens = {
   "4-connect": {
     title: "No passwords or tokens",
     sub: "The extension only knows your webhook address. It works at home and away with Nabu Casa.",
-    body: `<img src="${img("settings-step4")}" style="max-width:900px">`,
+    body: `<img src="${img("settings-step3")}" style="max-width:900px">`,
   },
 };
 
