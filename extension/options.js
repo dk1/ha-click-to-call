@@ -11,6 +11,19 @@ const newId = () =>
 $("importBlueprint").href =
   "https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=" + encodeURIComponent(BLUEPRINT_URL);
 
+// A DNS name (labels of letters, digits and inner hyphens), an IPv4 address, or a bracketed IPv6 address.
+const HOST = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*|\[[0-9a-f:.]+\])$/i;
+
+// Home Assistant serves its app manifest without signing in, so it shows the address is right.
+async function isHomeAssistant(origin) {
+  try {
+    const res = await fetch(`${origin}/manifest.json`, { signal: AbortSignal.timeout(5000) });
+    return res.ok && /home assistant/i.test((await res.json()).name);
+  } catch {
+    return false;
+  }
+}
+
 let savedUrl = "";
 // "Try it" only works once a webhook URL is saved.
 const setSaved = (url) => {
@@ -32,6 +45,10 @@ function resolve(split) {
   } catch {
     return { error: "Start the address with http:// or https://." };
   }
+  // URL() quietly turns spaces and other stray characters in the host into %20 and friends.
+  if (/\s/.test(raw) || !HOST.test(url.hostname))
+    return { error: "That doesn't look like an address, for example http://homeassistant.local:8123." };
+  if (url.username || url.password) return { error: "Leave out the user name and password." };
   const path = url.pathname.replace(/\/+$/, "");
   const hook = path.match(/^(.*)\/api\/webhook\/([^/]+)$/);
   if (hook) {
@@ -110,7 +127,10 @@ $("save").addEventListener("click", async () => {
   // Drop settings from the earlier token-based version.
   await chrome.storage.local.remove(["haUrl", "token", "service", "action"]);
   setSaved(r.url);
-  status("saveStatus", "Saved");
+  if (r.custom) return status("saveStatus", "Saved");
+  status("saveStatus", "Saved. Checking the address…");
+  if (await isHomeAssistant(r.origin)) status("saveStatus", "Saved. Home Assistant answered.");
+  else status("saveStatus", `Saved, but Home Assistant didn't answer at ${r.origin}. Check the address, or try again from home if it's a home address.`, false);
 });
 
 $("test").addEventListener("click", async () => {
