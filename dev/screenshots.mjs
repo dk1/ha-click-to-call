@@ -104,7 +104,7 @@ async function desktop() {
   // A web page with a detected number, then the "Sent" message after clicking it.
   const server = createServer((req, res) => res.end(readFileSync(join(DEV, "demo-page.html")))).listen(0);
   const demo = await browser.newPage();
-  await demo.setViewport({ width: 900, height: 560, deviceScaleFactor: 2 });
+  await demo.setViewport({ width: 600, height: 440, deviceScaleFactor: 2 });
   await demo.goto(`http://localhost:${server.address().port}/`);
   await demo.waitForSelector('#front-desk a[href^="tel:"]');
   await demo.hover("#front-desk a");
