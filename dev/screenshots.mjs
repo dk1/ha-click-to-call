@@ -38,7 +38,8 @@ function buildExtension() {
   mkdirSync(dir, { recursive: true });
   cpSync(EXT, dir, { recursive: true });
   const manifest = JSON.parse(readFileSync(join(EXT, "manifest.json"), "utf8"));
-  manifest.host_permissions = [`${HA}/*`];
+  // Also the address the settings shots show, so they look saved rather than awaiting access.
+  manifest.host_permissions = [`${HA}/*`, "https://abcd1234.ui.nabu.casa/*"];
   writeFileSync(join(dir, "manifest.json"), JSON.stringify(manifest, null, 2));
   return dir;
 }

@@ -68,8 +68,19 @@ function resolve(split) {
   return { url: `${url.origin}${path}/api/webhook/${id}`, origin: url.origin };
 }
 
+// Before Save, say why Chrome is about to ask for access, if it will.
+let permCheck = 0;
+async function showPermissionNeeded(origin) {
+  const check = ++permCheck;
+  const needed = !!origin && !(await chrome.permissions.contains({ origins: [`${origin}/*`] }));
+  if (check !== permCheck) return; // A later keystroke has already checked.
+  $("permNote").hidden = !needed;
+  $("save").textContent = needed ? "Save and allow access" : "Save";
+}
+
 function refresh(split = false) {
   const r = resolve(split);
+  showPermissionNeeded(r.origin);
   const preview = $("urlPreview");
   preview.hidden = !$("haAddress").value.trim();
   preview.textContent = r.error
@@ -119,6 +130,7 @@ $("save").addEventListener("click", async () => {
   // Must run inside the click handler so the browser shows the permission prompt.
   const granted = await chrome.permissions.request({ origins: [`${r.origin}/*`] });
   if (!granted) return status("saveStatus", `Permission to reach ${r.origin} was denied.`, false);
+  showPermissionNeeded(r.origin);
   await chrome.storage.local.set({
     webhookUrl: r.url,
     haAddress: $("haAddress").value.trim(),
