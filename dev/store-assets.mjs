@@ -45,13 +45,18 @@ const screens = {
   },
   "3-blueprint": {
     title: "Set up with a Home Assistant blueprint",
-    sub: "Pick your phone, paste the webhook ID from the extension, and save.",
+    sub: "Select your phone, paste the webhook ID from the extension, and save.",
     body: `<img src="${img("settings-step2")}" style="max-width:1100px">`,
   },
   "4-connect": {
     title: "No passwords or tokens",
     sub: "The extension only knows your webhook address. It works at home and away with Nabu Casa.",
     body: `<img src="${img("settings-step3")}" style="max-width:900px">`,
+  },
+  "5-phone": {
+    title: "Set up your phone once",
+    sub: "Allow the Home Assistant app to display over other apps, so it can open the dialer for you.",
+    body: `<img src="${img("phone-overlay-setting")}" style="max-width:900px;box-shadow:none;background:none">`,
   },
 };
 
@@ -68,15 +73,22 @@ for (const [name, s] of Object.entries(screens)) {
   await page.screenshot({ path: join(OUT, `screenshot-${name}.png`) });
 }
 
-// Chrome Web Store small promo tile.
+// Chrome Web Store small promo tile: the store asks for little text, so just the icon and name.
 await page.setViewport({ width: 440, height: 280 });
 await page.setContent(`<style>
-    * { margin: 0; } body { width: 440px; height: 280px; display: flex; align-items: center; gap: 22px; padding: 0 36px;
-      box-sizing: border-box; background: linear-gradient(135deg, #185fa5, #0f3f70); color: #fff; font: 16px/1.35 system-ui, sans-serif; }
-    img { width: 96px; height: 96px; flex: none; } h1 { font-size: 27px; font-weight: 650; } p { opacity: .85; margin-top: 6px; }
-  </style><img src="${icon}"><div><h1>HA Click-to-Call</h1><p>Dial a number on your phone from your browser.</p></div>`,
+    * { margin: 0; } body { width: 440px; height: 280px; display: flex; align-items: center; justify-content: center; gap: 20px; white-space: nowrap;
+      background: linear-gradient(135deg, #185fa5, #0f3f70); color: #fff; font: 650 28px system-ui, sans-serif; }
+    h1 { font: inherit; }
+    img { width: 88px; height: 88px; flex: none; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .35)); }
+  </style><img src="${icon}"><h1>HA Click-to-Call</h1>`,
   { waitUntil: "load" });
 await page.screenshot({ path: join(OUT, "promo-small-440x280.png") });
+
+// The 128px icon is also the store icon, which wants 96px artwork with 16px of transparent padding.
+await page.setViewport({ width: 128, height: 128 });
+await page.setContent(`<style>* { margin: 0; } body { background: transparent; }</style>
+  <img src="${icon}" style="display:block;width:96px;height:96px;margin:16px">`, { waitUntil: "load" });
+await page.screenshot({ path: join(ROOT, "extension", "icons", "icon-128.png"), omitBackground: true });
 await browser.close();
 
 // The zip to upload to the Chrome Web Store.

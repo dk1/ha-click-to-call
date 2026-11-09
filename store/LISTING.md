@@ -16,7 +16,7 @@ Dial phone numbers from your browser on your Android phone, through Home Assista
 
 **Privacy policy:** https://github.com/dk1/ha-click-to-call/blob/main/PRIVACY.md
 
-**Images:** `screenshot-1` to `screenshot-4` (1280×800) and the small promo tile `promo-small-440x280.png`.
+**Images:** `screenshot-1` to `screenshot-5` (1280×800) and the small promo tile `promo-small-440x280.png`.
 Icon: `extension/icons/icon-128.png`.
 
 **Description:**
