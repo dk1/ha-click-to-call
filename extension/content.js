@@ -1,11 +1,12 @@
-// Small status toast, in a shadow root so page CSS can't touch it.
+// Small status toast, in a shadow root so page CSS can't touch it. Kept by reference
+// rather than looked up by ID, so an element the page makes can't stand in for it.
 let toastTimer;
+let toastHost;
+let toastEl;
 function toast(text, kind) {
-  let host = document.getElementById("ha-click-to-call-toast");
-  if (!host) {
-    host = document.createElement("div");
-    host.id = "ha-click-to-call-toast";
-    host.attachShadow({ mode: "open" }).innerHTML = `
+  if (!toastHost) {
+    toastHost = document.createElement("div");
+    toastHost.attachShadow({ mode: "open" }).innerHTML = `
       <style>
         div { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
               z-index: 2147483647; padding: 10px 16px; border-radius: 8px;
@@ -16,9 +17,10 @@ function toast(text, kind) {
         .hidden { opacity: 0; pointer-events: none; }
       </style>
       <div class="hidden" role="status"></div>`;
-    document.documentElement.append(host);
+    toastEl = toastHost.shadowRoot.querySelector("div");
   }
-  const el = host.shadowRoot.querySelector("div");
+  if (!toastHost.isConnected) document.documentElement.append(toastHost);
+  const el = toastEl;
   el.textContent = text;
   el.className = kind;
   clearTimeout(toastTimer);
@@ -36,7 +38,8 @@ function showResult(r, label) {
 document.addEventListener(
   "click",
   async (e) => {
-    if (e.button !== 0 || e.altKey || e.defaultPrevented) return;
+    // isTrusted: only a real click by the user, never one a page script fakes with a.click().
+    if (!e.isTrusted || e.button !== 0 || e.altKey || e.defaultPrevented) return;
     const link = e.target instanceof Element && e.target.closest('a[href^="tel:" i]');
     if (!link) return;
     e.preventDefault();
@@ -45,7 +48,14 @@ document.addEventListener(
     // Use the link text only when it is the number itself, not e.g. "Call reception".
     const shown = link.textContent.replace(/\s+/g, " ").trim();
     const label = /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
-    showResult(await chrome.runtime.sendMessage({ type: "call", number: link.getAttribute("href").slice(4) }), label);
+    let result;
+    try {
+      result = await chrome.runtime.sendMessage({ type: "call", number: link.getAttribute("href").slice(4) });
+    } catch {
+      // Pages opened before the extension was updated or reloaded lose their connection to it.
+      result = { ok: false, error: "the extension was updated. Reload this page and try again" };
+    }
+    showResult(result, label);
   },
   true
 );
@@ -116,7 +126,8 @@ function startLinkifying() {
   }).observe(document.body, { childList: true, subtree: true });
 }
 
-chrome.storage.local.get("linkify").then(({ linkify = true }) => {
+// Off unless turned on in the settings: changing page text can upset some sites.
+chrome.storage.local.get("linkify").then(({ linkify = false }) => {
   if (!linkify) return;
   if (document.body) startLinkifying();
   else document.addEventListener("DOMContentLoaded", startLinkifying, { once: true });

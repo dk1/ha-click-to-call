@@ -24,6 +24,15 @@ async function isHomeAssistant(origin) {
   }
 }
 
+// A stray % in a pasted address would otherwise throw.
+const safeDecode = (s) => {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+};
+
 let savedUrl = "";
 // "Try it" only works once a webhook URL is saved.
 const setSaved = (url) => {
@@ -50,22 +59,20 @@ function resolve(split) {
     return { error: "That doesn't look like an address. For example: http://homeassistant.local:8123" };
   if (url.username || url.password) return { error: "Leave out the user name and password." };
   const path = url.pathname.replace(/\/+$/, "");
-  const hook = path.match(/^(.*)\/api\/webhook\/([^/]+)$/);
-  if (hook) {
-    // Split a pasted full URL into its fields once editing is done, not mid-typing.
-    if (split) {
-      $("webhookId").value = decodeURIComponent(hook[2]);
-      $("haAddress").value = url.origin + hook[1];
-    }
-    return { url: url.origin + path, origin: url.origin };
-  }
   if (url.hostname.endsWith("hooks.nabu.casa")) {
     $("webhookId").disabled = true;
     return { url: url.origin + path, origin: url.origin, custom: true };
   }
-  const id = $("webhookId").value.trim();
+  // Home Assistant always serves from the root, so a pasted page address such as
+  // .../lovelace/0 keeps only its origin. A full .../api/webhook/<id> fills in the ID.
+  const hook = path.match(/\/api\/webhook\/([^/]+)$/);
+  if (split && (hook || path)) {
+    if (hook) $("webhookId").value = safeDecode(hook[1]);
+    $("haAddress").value = url.origin;
+  }
+  const id = hook && !split ? safeDecode(hook[1]) : $("webhookId").value.trim();
   if (!/^[\w-]{8,}$/.test(id)) return { error: "The webhook ID needs at least 8 letters, numbers, - or _." };
-  return { url: `${url.origin}${path}/api/webhook/${id}`, origin: url.origin };
+  return { url: `${url.origin}/api/webhook/${id}`, origin: url.origin };
 }
 
 // Before Save, say why Chrome is about to ask for access, if it will.
@@ -104,7 +111,7 @@ chrome.storage.local.get(["webhookUrl", "haAddress", "webhookId", "linkify"]).th
   }
   $("webhookId").value = id || newId();
   $("haAddress").value = address || "";
-  $("linkify").checked = s.linkify ?? true;
+  $("linkify").checked = s.linkify ?? false;
   if ($("haAddress").value) refresh(true);
 });
 
@@ -138,6 +145,9 @@ $("save").addEventListener("click", async () => {
   });
   // Drop settings from the earlier token-based version.
   await chrome.storage.local.remove(["haUrl", "token", "service", "action"]);
+  // Give up access to the previous address, so the extension can only reach the current one.
+  const before = savedUrl && new URL(savedUrl).origin;
+  if (before && before !== r.origin) await chrome.permissions.remove({ origins: [`${before}/*`] }).catch(() => {});
   setSaved(r.url);
   if (r.custom) return status("saveStatus", "Saved");
   status("saveStatus", "Saved. Checking the address…");

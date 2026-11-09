@@ -33,9 +33,9 @@ from the extension's settings.
 
 <img src="docs/screenshots/settings-step3.png" width="440" alt="Step 3 in the extension's settings, with a Nabu Casa address and the Save button.">
 
-**4. Set up your phone.** Allow the Home Assistant app to **Display over other apps**: on your phone, go to
-**Settings** > **Apps** > **Home Assistant** (called **Appear on top** on some phones). Android needs this
-before an app can open the dialer for you. Without it, you can tap the notification to open the dialer.
+**4. Set up your phone.** On your phone, go to **Settings** > **Apps** > **Home Assistant** and turn on
+**Display over other apps** (called **Appear on top** on some phones). Android needs this before an app can
+open the dialer for you. Without it, you can tap the notification to open the dialer.
 
 <img src="docs/screenshots/phone-overlay-setting.png" width="520" alt="App info for Home Assistant with Display over other apps outlined, then the Allow display over other apps switch turned on.">
 
@@ -59,7 +59,10 @@ step and nothing downloaded at runtime, so you can read all of it before you loa
 ## Use it
 <img src="docs/screenshots/page-number.png" width="480" alt="Phone numbers on a web page with a dotted underline.">
 
-- Click any phone number link, or any number the extension has underlined.
+- Click any phone number link.
+- To also click numbers that are only text, turn on **Make phone numbers without a `tel:` link clickable** in the
+  extension's settings. They get a dotted underline. It's off by default because it changes the page, which a few
+  sites don't handle well.
 - Or select a number, right-click and choose **Call … on phone**.
 - A message at the bottom of the page confirms it was sent. Your phone buzzes and opens the dialer. If the
   dialer doesn't open, tap the notification.
@@ -92,4 +95,4 @@ and the Android emulator, so no real data ends up in them. See the comments at t
 and `dev/docker-compose.yml`. `npm run store` in `dev` makes the store zip and listing
 images; see [`store/LISTING.md`](store/LISTING.md).
 
-CI runs `node dev/check-extension.mjs` and `python dev/check-blueprint.py` on every push.
+CI runs `node dev/check-extension.mjs` and `python dev/check-blueprint.py` on every pull request and push to `main`.
