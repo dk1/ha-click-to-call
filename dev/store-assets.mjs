@@ -79,7 +79,7 @@ await page.setContent(`<style>
 await page.screenshot({ path: join(OUT, "promo-small-440x280.png") });
 await browser.close();
 
-// Same zip for Chrome, Edge and Firefox.
+// The zip to upload to the Chrome Web Store.
 rmSync(DIST, { recursive: true, force: true });
 execFileSync("npx", ["--yes", "web-ext", "build", "--source-dir", join(ROOT, "extension"), "--artifacts-dir", DIST, "--overwrite-dest"],
   { stdio: "inherit" });

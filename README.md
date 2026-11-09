@@ -11,7 +11,7 @@ app.
 ## What you need
 - [Home Assistant](https://www.home-assistant.io/).
 - An Android phone with the [Home Assistant Companion app](https://companion.home-assistant.io/) installed.
-- Chrome, Edge or Firefox.
+- Google Chrome on your computer. Want another browser? [Open an issue](https://github.com/dk1/ha-click-to-call/issues).
 
 ## Set up
 [Install the extension](#install), then click its icon in the toolbar to open the settings.
@@ -42,25 +42,17 @@ before an app can open the dialer for you. Without it, you can tap the notificat
 Then enter a number under **Try it** and click **Send to phone**.
 
 ## Install
-Store listings for Chrome, Edge and Firefox are on the way. Until then, or if you'd rather not install from a
-store, run it straight from this repository.
+The Chrome Web Store listing is on the way. Until then, or if you'd rather not install from a store, run it
+straight from this repository.
 
 ### Run it from the source (no store)
 The extension is a few hundred lines of plain JavaScript in the [`extension`](extension) folder, with no build
 step and nothing downloaded at runtime, so you can read all of it before you load it.
 
 1. Get the code: `git clone https://github.com/dk1/ha-click-to-call`, or **Code** > **Download ZIP** on this
-   page and unzip it. Keep the folder: the browser loads the extension from it.
-2. Load it in your browser:
-   - **Chrome, Edge, Brave, Arc:** go to `chrome://extensions` (`edge://extensions` in Edge), turn on
-     **Developer mode**, click **Load unpacked** and choose the `extension` folder.
-   - **Firefox:** go to `about:debugging` > **This Firefox** > **Load Temporary Add-on** and choose
-     `extension/manifest.json`. Firefox removes it when it restarts. To keep it, sign your own copy: create a free
-     [add-ons account](https://addons.mozilla.org/developers/), get API keys, run
-     `npx web-ext sign --source-dir extension --channel=unlisted --api-key=… --api-secret=…`, then open the
-     `.xpi` file it makes in Firefox. Unlisted copies aren't published anywhere.
-   - **Safari:** run `xcrun safari-web-extension-converter extension`, build the Xcode project it makes, then turn
-     the extension on in **Safari** > **Settings** > **Extensions**.
+   page and unzip it. Keep the folder: Chrome loads the extension from it.
+2. In Chrome, go to `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and choose the
+   `extension` folder.
 3. To update, run `git pull` (or download the ZIP again into the same folder), then click the reload button on the
    extension in `chrome://extensions`. Your settings are kept.
 
@@ -100,5 +92,4 @@ and the Android emulator, so no real data ends up in them. See the comments at t
 and `dev/docker-compose.yml`. `npm run store` in `dev` makes the store zip and listing
 images; see [`store/LISTING.md`](store/LISTING.md).
 
-`npx web-ext lint --source-dir extension` reports one expected warning about `background.service_worker`: Chrome uses it, Firefox
-uses `background.scripts`.
+CI runs `node dev/check-extension.mjs` and `python dev/check-blueprint.py` on every push.

@@ -3,20 +3,20 @@
 Copy these into the store forms. `npm run store` in `dev/` makes the upload zip (`store/dist/`) and the images
 (`store/images/`). Bump `version` in `extension/manifest.json` before uploading an update.
 
-## All stores
+## Chrome Web Store: Store listing tab
 
 **Name:** HA Click-to-Call
 
-**Summary** (Chrome 132 / Firefox 250 characters max):
+**Summary** (132 characters max):
 Dial phone numbers from your browser on your Android phone, through Home Assistant.
 
-**Category:** Chrome: Productivity > Tools. Edge: Productivity. Firefox: Other (or Social & Communication).
+**Category:** Productivity > Tools.
 
 **Homepage / support:** https://github.com/dk1/ha-click-to-call
 
 **Privacy policy:** https://github.com/dk1/ha-click-to-call/blob/main/PRIVACY.md
 
-**Images:** `screenshot-1` to `screenshot-4` (1280×800). Chrome also takes `promo-small-440x280.png`.
+**Images:** `screenshot-1` to `screenshot-4` (1280×800) and the small promo tile `promo-small-440x280.png`.
 Icon: `extension/icons/icon-128.png`.
 
 **Description:**
@@ -75,12 +75,3 @@ To try it without Home Assistant, open the settings page, enter any address such
 select Save, then click a phone number on any page. The request goes to
 https://example.com/api/webhook/<id>, so the page shows "Home Assistant replied with an error (404)". That confirms the click was handled and sent.
 
-## Edge Add-ons
-
-Same zip, description, images and privacy policy. **Search terms:** home assistant, click to call, phone, dialer,
-android. Edge uses the 1280×800 screenshots; the promo tile is optional.
-
-## Firefox Add-ons
-
-Upload the same zip as **On this site** (listed). Source code isn't needed: there's no build step. The manifest
-already declares that no data is collected. **License:** MIT. **Tags:** productivity.

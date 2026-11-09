@@ -16,9 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Fails on errors only. One warning is expected: Chrome reads
-      # background.service_worker, Firefox background.scripts.
-      - run: npx --yes web-ext lint --source-dir extension
+      - run: node dev/check-extension.mjs
 
   blueprint:
     runs-on: ubuntu-latest

@@ -47,7 +47,7 @@ function resolve(split) {
   }
   // URL() quietly turns spaces and other stray characters in the host into %20 and friends.
   if (/\s/.test(raw) || !HOST.test(url.hostname))
-    return { error: "That doesn't look like an address, for example http://homeassistant.local:8123." };
+    return { error: "That doesn't look like an address. For example: http://homeassistant.local:8123" };
   if (url.username || url.password) return { error: "Leave out the user name and password." };
   const path = url.pathname.replace(/\/+$/, "");
   const hook = path.match(/^(.*)\/api\/webhook\/([^/]+)$/);

@@ -1,9 +1,8 @@
 # Push a tag matching the manifest version to release it:
 #   git tag v1.0.1 && git push origin v1.0.1
-# Builds the zip, attaches it to a GitHub release, and publishes to each store whose
-# secrets are set. Submit each store listing by hand once before adding its secrets.
-#   Firefox: AMO_API_KEY, AMO_API_SECRET (addons.mozilla.org/developers/addon/api/key)
-#   Chrome:  CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
+# Builds the zip, attaches it to a GitHub release, and publishes to the Chrome Web Store
+# once these secrets are set (submit the first version by hand):
+#   CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN
 name: Release
 
 on:
@@ -17,7 +16,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
       CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
     steps:
       - uses: actions/checkout@v4
@@ -34,20 +32,13 @@ jobs:
           fi
           echo "VERSION=$version" >> "$GITHUB_ENV"
 
-      - run: npx --yes web-ext lint --source-dir extension
+      - run: node dev/check-extension.mjs
       - run: npx --yes web-ext build --source-dir extension --artifacts-dir dist --filename "ha-click-to-call-{version}.zip"
 
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" "dist/ha-click-to-call-$VERSION.zip" --title "$GITHUB_REF_NAME" --generate-notes
-
-      - name: Firefox Add-ons
-        if: env.AMO_API_KEY != ''
-        env:
-          WEB_EXT_API_KEY: ${{ secrets.AMO_API_KEY }}
-          WEB_EXT_API_SECRET: ${{ secrets.AMO_API_SECRET }}
-        run: npx --yes web-ext sign --source-dir extension --channel listed --artifacts-dir dist/firefox
 
       - name: Chrome Web Store
         if: env.CWS_EXTENSION_ID != ''
