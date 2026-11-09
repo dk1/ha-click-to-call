@@ -9,13 +9,14 @@ text. They're kept in your browser's extension storage on your computer.
 only that number to the webhook address you entered. Nothing is sent anywhere else, and nothing is sent until you
 click.
 
-**What it reads.** To find phone numbers, the extension looks at the text of the pages you visit. This happens in
-your browser. Page content, addresses and browsing history are never stored or sent.
+**What it reads.** The extension watches for clicks on phone number links on the pages you visit. If you turn on
+making numbers that are only text clickable, it also looks at page text to find them. This happens in your
+browser. Page content, addresses and browsing history are never stored or sent.
 
 **What it doesn't do.** No analytics, no tracking, no ads, no accounts, and no data sold or shared. The developer
 receives no data from the extension. It never sees a Home Assistant password or token.
 
-**Permissions.** Access to your Home Assistant address is requested when you save it, for that address only.
+**Permissions.** Access to your Home Assistant address is requested when you save it, for that address only. Access to a previous address is given up when you change it.
 
 **Questions.** Open an issue at https://github.com/dk1/ha-click-to-call/issues.
 

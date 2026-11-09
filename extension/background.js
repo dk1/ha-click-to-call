@@ -1,6 +1,7 @@
 const MENU_ID = "ha-click-to-call";
 
 // Keep a leading + and digits; drop formatting, "tel:" params (;ext=…) and whitespace.
+// At least 7 digits, so emergency and short codes (911, 112, 611) are never sent.
 function normalize(raw) {
   let s = String(raw || "");
   try {
@@ -9,7 +10,7 @@ function normalize(raw) {
   s = s.split(/[;?]/)[0].trim();
   const plus = s.startsWith("+");
   s = s.replace(/\D/g, "");
-  return s.length >= 3 && s.length <= 15 ? (plus ? "+" : "") + s : null;
+  return s.length >= 7 && s.length <= 15 ? (plus ? "+" : "") + s : null;
 }
 
 function flash(text, color, title) {
@@ -22,9 +23,15 @@ function flash(text, color, title) {
   }, 4000);
 }
 
+// One number at a time, so nothing can flood the phone.
+const MIN_GAP_MS = 3000;
+let lastSent = 0;
+
 async function sendToPhone(raw) {
   const number = normalize(raw);
   if (!number) return { ok: false, error: `"${raw}" doesn't look like a phone number` };
+  if (Date.now() - lastSent < MIN_GAP_MS) return { ok: false, error: "Wait a few seconds before sending another number" };
+  lastSent = Date.now();
 
   const { webhookUrl } = await chrome.storage.local.get("webhookUrl");
   if (!webhookUrl) {
@@ -38,10 +45,12 @@ async function sendToPhone(raw) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ number }),
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return { ok: false, error: `Home Assistant replied with an error (${res.status})` };
     return { ok: true, number };
-  } catch {
+  } catch (e) {
+    if (e.name === "TimeoutError") return { ok: false, error: "Home Assistant didn't answer in time" };
     return { ok: false, error: "Couldn't reach Home Assistant. Away from home? Use a remote address in the settings" };
   }
 }

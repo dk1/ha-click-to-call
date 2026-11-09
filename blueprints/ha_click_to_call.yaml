@@ -109,12 +109,13 @@ triggers:
     local_only: !input local_only
 
 conditions:
-  # Only digits with an optional + reach the intent. Read straight from
+  # Only 7 to 15 digits with an optional + reach the intent, so emergency and short
+  # codes (911, 112) are never dialed. Read straight from
   # trigger.json: a rendered variable would turn "+1416…" into an integer.
   - condition: template
     value_template: >-
       {{ (trigger.json | default({})).number | default('') | string
-         is match('^\+?[0-9]{3,15}$') }}
+         is match('^\+?[0-9]{7,15}$') }}
 
 actions:
   # Sent through the phone's device, not notify.mobile_app_<name>, so renaming the

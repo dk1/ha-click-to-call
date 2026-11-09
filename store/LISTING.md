@@ -26,7 +26,7 @@ Dial a number on your phone from your browser.
 
 Click a phone number on any web page and your Android phone opens the dialer with the number ready to call. The number goes through your own Home Assistant, using a blueprint and the Home Assistant Companion app on your phone.
 
-• Works with phone number links, and with numbers that are only text (shown with a dotted underline)
+• Works with phone number links, and optionally with numbers that are only text (shown with a dotted underline)
 • Select a number, right-click and choose "Call … on phone"
 • Hold Alt (Option on a Mac) to use your computer's own phone app instead
 • Works at home and away with Nabu Casa or any remote address
@@ -57,13 +57,14 @@ Adds a "Call … on phone" item when the user selects a phone number and right-c
 
 **Host permission** (optional `http://*/*`, `https://*/*`):
 Every user has a different Home Assistant address (a Nabu Casa URL, a home IP address or their own domain), so it
-can't be listed in advance. The extension asks for access to that one address when the user saves it, and only
-sends the clicked phone number to it.
+can't be listed in advance. The extension asks for access to that one address when the user saves it, gives up
+access to the previous address when it changes, and only sends the clicked phone number to it.
 
 **Content script on all URLs:**
-Phone numbers can be on any site. The content script handles clicks on `tel:` links and underlines numbers that
-are only text, so the user can click them. It reads page text in the browser only and sends nothing unless the
-user clicks a number.
+Phone numbers can be on any site, so the content script has to run on all of them. That's why Chrome shows "Read
+and change all your data on all websites" at install. The script only handles real user clicks on `tel:` links.
+If the user turns on the optional setting (off by default), it also underlines numbers that are only text so
+they can be clicked. Page content is never stored or sent; nothing is sent until the user clicks a number.
 
 **Remote code:** No, I am not using remote code.
 
@@ -73,5 +74,5 @@ server. Tick all three certifications (not sold, not used for unrelated purposes
 **Notes for the reviewer** (optional field):
 To try it without Home Assistant, open the settings page, enter any address such as https://example.com and
 select Save, then click a phone number on any page. The request goes to
-https://example.com/api/webhook/<id>, so the page shows "Home Assistant replied with an error (404)". That confirms the click was handled and sent.
+https://example.com/api/webhook/<id>, so the page shows "Home Assistant replied with an error (405)". That confirms the click was handled and sent.
 
