@@ -59,7 +59,7 @@ step and nothing downloaded at runtime, so you can read all of it before you loa
 ## Use it
 <img src="docs/screenshots/page-number.png" width="480" alt="Phone numbers on a web page with a dotted underline.">
 
-- Click any phone number link.
+- Click any phone number link. On Google Maps, clicking a place's phone number sends it too, instead of copying it.
 - To also click numbers that are only text, turn on **Make phone numbers without a `tel:` link clickable** in the
   extension's settings. They get a dotted underline. It's off by default because it changes the page, which a few
   sites don't handle well.

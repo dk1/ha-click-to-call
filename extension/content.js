@@ -33,24 +33,32 @@ function showResult(r, label) {
   else toast(`Couldn't send: ${r?.error || "unknown error"}`, "error");
 }
 
-// Intercept clicks on tel: links and hand the number to the background script.
-// Alt/Option-click falls through to the browser's normal tel: handler.
+// Phone links, plus Google Maps' "Copy phone number" button, which holds the number in
+// data-item-id="phone:tel:+1…" instead of an href.
+const PHONE_TARGET = 'a[href^="tel:" i], [data-item-id^="phone:tel:"]';
+const numberOf = (el) =>
+  el.matches("a") ? el.getAttribute("href").slice(4) : el.getAttribute("data-item-id").slice("phone:tel:".length);
+
+// Intercept clicks on phone links and hand the number to the background script.
+// Alt/Option-click falls through to the page's own handling (the tel: handler, or Maps' copy).
 document.addEventListener(
   "click",
   async (e) => {
     // isTrusted: only a real click by the user, never one a page script fakes with a.click().
     if (!e.isTrusted || e.button !== 0 || e.altKey || e.defaultPrevented) return;
-    const link = e.target instanceof Element && e.target.closest('a[href^="tel:" i]');
+    const link = e.target instanceof Element && e.target.closest(PHONE_TARGET);
     if (!link) return;
     e.preventDefault();
     e.stopPropagation();
     toast("Sending to your phone…", "pending");
     // Use the link text only when it is the number itself, not e.g. "Call reception".
-    const shown = link.textContent.replace(/\s+/g, " ").trim();
+    // Maps' button also holds an icon, so its aria-label ("Phone: (416) 868-6937") is cleaner.
+    const text = link.matches("a") ? link.textContent : (link.getAttribute("aria-label") ?? "").replace(/^[^:]*:/, "");
+    const shown = text.replace(/\s+/g, " ").trim();
     const label = /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
     let result;
     try {
-      result = await chrome.runtime.sendMessage({ type: "call", number: link.getAttribute("href").slice(4) });
+      result = await chrome.runtime.sendMessage({ type: "call", number: numberOf(link) });
     } catch {
       // Pages opened before the extension was updated or reloaded lose their connection to it.
       result = { ok: false, error: "the extension was updated. Reload this page and try again" };
