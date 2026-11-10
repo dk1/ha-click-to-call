@@ -27,6 +27,7 @@ Dial a number on your phone from your browser.
 Click a phone number on any web page and your Android phone opens the dialer with the number ready to call. The number goes through your own Home Assistant, using a blueprint and the Home Assistant Companion app on your phone.
 
 • Works with phone number links and with numbers that are only text (shown with a dotted underline)
+• Works with business numbers on Google Search and Google Maps
 • Select a number, right-click and choose "Call … on phone"
 • Hold Alt (Option on a Mac) to use your computer's own phone app instead
 • Works at home and away with Nabu Casa or any remote address
@@ -61,7 +62,7 @@ Apart from the content script below, the extension declares no host permissions.
 
 **Content script on all URLs:**
 Phone numbers can be on any site, so the content script has to run on all of them. That's why Chrome shows "Read
-and change all your data on all websites" at install. The script only handles real user clicks on `tel:` links.
+and change all your data on all websites" at install. The script only acts on real user clicks on phone numbers: `tel:` links, and a `tel:` address the page opens right after the user clicks that same number (as Google Search does).
 It also underlines numbers that are only text so they can be clicked; the user can turn this off in the
 settings. Page content is never stored or sent; nothing is sent until the user clicks a number.
 

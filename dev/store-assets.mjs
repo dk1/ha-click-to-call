@@ -40,7 +40,7 @@ const screens = {
   },
   "2-any-number": {
     title: "Works on any page",
-    sub: "Phone links work right away. Turn on one setting to make numbers that are only text clickable too.",
+    sub: "Phone links, and numbers that are only text, which get a dotted underline.",
     body: `<img src="${img("page-number")}" style="max-width:1000px">`,
   },
   "3-blueprint": {
