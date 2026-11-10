@@ -1,5 +1,4 @@
-const LINK_MENU = "call-link";
-const SELECTION_MENU = "call-selection";
+const MENU_ID = "call-on-phone";
 const CLICK_SCRIPT = "click-to-call";
 
 // Keep a leading + and digits; drop formatting, "tel:" params (;ext=…) and whitespace.
@@ -66,9 +65,15 @@ async function call(raw) {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
+  // One item for both phone links and selected text: with two, a link whose text is also
+  // selected shows both, and Chrome tucks an extension's items into a submenu.
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({ id: LINK_MENU, title: "Call on phone", contexts: ["link"], targetUrlPatterns: ["tel:*"] });
-    chrome.contextMenus.create({ id: SELECTION_MENU, title: 'Call "%s" on phone', contexts: ["selection"] });
+    chrome.contextMenus.create({
+      id: MENU_ID,
+      title: "Call on phone",
+      contexts: ["link", "selection"],
+      targetUrlPatterns: ["tel:*"], // Applies to links only; any selection still shows it.
+    });
   });
 });
 
@@ -89,10 +94,12 @@ async function showOnPage(tab, frameId, ...args) {
 }
 
 async function onMenuClick(info, tab) {
-  const raw = info.menuItemId === LINK_MENU ? info.linkUrl?.replace(/^tel:/i, "") : info.selectionText;
+  if (info.menuItemId !== MENU_ID) return;
+  const isLink = /^tel:/i.test(info.linkUrl ?? "");
+  const raw = isLink ? info.linkUrl.replace(/^tel:/i, "") : info.selectionText;
   if (!raw) return;
   // A selection is shown as the user selected it; a link only has its tel: number.
-  const shown = info.menuItemId === SELECTION_MENU ? raw.replace(/\s+/g, " ").trim() : "";
+  const shown = isLink ? "" : raw.replace(/\s+/g, " ").trim();
   const label = /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
   if (tab?.id >= 0) showOnPage(tab, info.frameId, "pending");
   const result = await call(raw);
