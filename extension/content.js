@@ -33,11 +33,17 @@ function showResult(r, label) {
   else toast(`Couldn't send: ${r?.error || "unknown error"}`, "error");
 }
 
-// Phone links, plus Google Maps' "Copy phone number" button, which holds the number in
-// data-item-id="phone:tel:+1…" instead of an href.
-const PHONE_TARGET = 'a[href^="tel:" i], [data-item-id^="phone:tel:"]';
-const numberOf = (el) =>
-  el.matches("a") ? el.getAttribute("href").slice(4) : el.getAttribute("data-item-id").slice("phone:tel:".length);
+// Phone links, plus two Google ones that open the dialer from the page's own code:
+// - Google Maps' "Copy phone number" button, with the number in data-item-id="phone:tel:+1…"
+// - Google Search's business panel number, an <a href="#" data-dtype="d3ph"> with the number as its text
+const PHONE_TARGET = 'a[href^="tel:" i], [data-item-id^="phone:tel:"], a[data-dtype="d3ph"]';
+function numberOf(el) {
+  const href = el.getAttribute("href") ?? "";
+  if (/^tel:/i.test(href)) return href.slice(4);
+  const item = el.getAttribute("data-item-id") ?? "";
+  if (item.startsWith("phone:tel:")) return item.slice("phone:tel:".length);
+  return el.textContent;
+}
 
 // Intercept clicks on phone links and hand the number to the background script.
 // Alt/Option-click falls through to the page's own handling (the tel: handler, or Maps' copy).
