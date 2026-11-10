@@ -112,6 +112,7 @@ chrome.storage.local.get(["webhookUrl", "haAddress", "webhookId", "linkify"]).th
   $("webhookId").value = id || newId();
   $("haAddress").value = address || "";
   $("linkify").checked = s.linkify ?? false;
+  showLinkifyExample();
   if ($("haAddress").value) refresh(true);
 });
 
@@ -162,4 +163,15 @@ $("test").addEventListener("click", async () => {
   else status("testStatus", r?.error || "Failed.", false);
 });
 
-$("linkify").addEventListener("change", () => chrome.storage.local.set({ linkify: $("linkify").checked }));
+// The examples under the setting show what it changes; they don't send anything.
+function showLinkifyExample() {
+  const on = $("linkify").checked;
+  $("plainExample").classList.toggle("on", on);
+  $("plainExampleNote").textContent = on ? "clickable, with a dotted underline" : "not clickable";
+}
+document.querySelectorAll("a.example").forEach((a) => a.addEventListener("click", (e) => e.preventDefault()));
+
+$("linkify").addEventListener("change", () => {
+  chrome.storage.local.set({ linkify: $("linkify").checked });
+  showLinkifyExample();
+});

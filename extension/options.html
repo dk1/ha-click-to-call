@@ -64,6 +64,10 @@
     button:disabled, input:disabled + button { cursor: default; }
     button:disabled { opacity: .5; }
     a { color: var(--accent); }
+    .examples { display: grid; gap: 4px; margin: 10px 0 0 26px; padding: 10px 12px; background: var(--code-bg);
+           border-radius: 8px; font-size: 13px; }
+    .examples a.example { cursor: default; }
+    #plainExample.on { text-decoration: underline dotted; }
     a.badge { display: inline-block; margin-top: 6px; border-radius: 16px; }
     a.badge img { display: block; height: 32px; }
     a.badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -146,8 +150,15 @@
     <label class="check"><input id="linkify" type="checkbox">
       <span>Make phone numbers without a <code>tel:</code> link clickable
         <span class="hint">Phone number links (<code>href="tel:…"</code>) always work. This also turns numbers that are only
-          text, like <code>(905) 786 0234</code>, into links. Reload a page to see the change.</span></span>
+          text into links. Reload a page to see the change.</span></span>
     </label>
+    <!-- Examples only: content scripts don't run on extension pages, and these send nothing. -->
+    <div class="examples" aria-label="Examples">
+      <div><span class="muted">Phone link:</span> <a class="example" href="tel:+14165550199">(416) 555-0199</a>
+        <span class="muted">always clickable</span></div>
+      <div><span class="muted">Text only:</span> <span class="example" id="plainExample">(905) 555-0142</span>
+        <span class="muted" id="plainExampleNote"></span></div>
+    </div>
   </section>
 
 </main>
