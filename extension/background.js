@@ -27,7 +27,14 @@ function flash(text, color, title) {
 const MIN_GAP_MS = 3000;
 let lastSent = 0;
 
-async function sendToPhone(raw) {
+// The number as the page wrote it, e.g. "(905) 555-0142", for the phone's notification.
+// Only short, number-like text is passed on; the automation checks it again.
+const cleanLabel = (label) => {
+  const s = String(label ?? "").replace(/\s+/g, " ").trim();
+  return /^[\d\s()+.\-‐‑‒–]{7,30}$/.test(s) ? s : "";
+};
+
+async function sendToPhone(raw, label) {
   const number = normalize(raw);
   if (!number) return { ok: false, error: `"${raw}" doesn't look like a phone number` };
   if (Date.now() - lastSent < MIN_GAP_MS) return { ok: false, error: "Wait a few seconds before sending another number" };
@@ -46,7 +53,7 @@ async function sendToPhone(raw) {
     await fetch(webhookUrl, {
       method: "POST",
       mode: "no-cors",
-      body: new URLSearchParams({ number }),
+      body: new URLSearchParams({ number, ...(cleanLabel(label) && { label: cleanLabel(label) }) }),
       signal: AbortSignal.timeout(10000),
     });
     return { ok: true, number };
@@ -56,8 +63,8 @@ async function sendToPhone(raw) {
   }
 }
 
-async function call(raw) {
-  const result = await sendToPhone(raw);
+async function call(raw, label) {
+  const result = await sendToPhone(raw, label);
   if (result.ok) flash("✓", "#2e7d32", `Sent ${result.number} to phone`);
   else flash("!", "#c62828", result.error);
   return result;
@@ -77,7 +84,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const toTab = (msg) => tab?.id >= 0 && chrome.tabs.sendMessage(tab.id, msg, info.frameId != null ? { frameId: info.frameId } : {}).catch(() => {});
   toTab({ type: "toast", pending: true });
   const label = info.selectionText.replace(/\s+/g, " ").trim();
-  toTab({ type: "toast", result: await call(info.selectionText), label: label.length <= 30 ? label : null });
+  toTab({ type: "toast", result: await call(info.selectionText, label), label: label.length <= 30 ? label : null });
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -94,7 +101,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return;
   }
   if (msg?.type !== "call") return;
-  call(msg.number).then(sendResponse);
+  call(msg.number, msg.label).then(sendResponse);
   return true;
 });
 

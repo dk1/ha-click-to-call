@@ -107,6 +107,17 @@ variables:
   tel_uri: >-
     tel:{{ (trigger.json if trigger.json is defined and trigger.json is mapping
             else trigger.data | default({})).get('number', '') }}
+  # The notification text. Uses the number as the page wrote it ("label", e.g. "(905) 555-0142")
+  # when it's only number characters and has the same digits, give or take a 1–2 digit country code.
+  dialing: >-
+    {%- set p = trigger.json if trigger.json is defined and trigger.json is mapping
+                else trigger.data | default({}) -%}
+    {%- set label = p.get('label', '') | string | trim -%}
+    {%- set digits = label | regex_replace('[^0-9]', '') -%}
+    {%- set number = tel_uri | regex_replace('[^0-9]', '') -%}
+    Dialing {{ label if label is match('^[0-9 ()+.‐‑‒–-]{7,30}$')
+                       and digits | length >= number | length - 2 and number.endswith(digits)
+               else tel_uri[4:] }}
 
 triggers:
   - trigger: webhook
@@ -127,7 +138,7 @@ actions:
     type: notify
     device_id: !input phone
     title: Number from browser
-    message: "Dialing {{ tel_uri[4:] }}"
+    message: "{{ dialing }}"
     data:
       tag: click-to-call
       channel: Click-to-Call
