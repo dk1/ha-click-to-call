@@ -10,6 +10,6 @@
     "test": "node --test --test-concurrency=1 \"test/*.test.mjs\""
   },
   "devDependencies": {
-    "puppeteer-core": "^24.43.1"
+    "puppeteer-core": "^25.16.0"
   }
 }
