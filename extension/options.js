@@ -140,7 +140,7 @@ $("save").addEventListener("click", async () => {
 
 $("test").addEventListener("click", async () => {
   status("testStatus", "Sending…");
-  const r = await chrome.runtime.sendMessage({ type: "call", number: $("testNumber").value });
+  const r = await chrome.runtime.sendMessage({ type: "call", number: $("testNumber").value, label: $("testNumber").value });
   if (r?.ok) status("testStatus", `Sent. Your phone should buzz and open the dialer.`);
   else status("testStatus", r?.error || "Failed.", false);
 });

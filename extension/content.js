@@ -41,15 +41,17 @@ const numberOf = (el) =>
 
 // Intercept clicks on phone links and hand the number to the background script.
 // Alt/Option-click falls through to the page's own handling (the tel: handler, or Maps' copy).
-document.addEventListener(
+// On the window, in the capture phase, from document_start: that runs before any listener the
+// page adds, so a page (Google Search, for one) can't open the tel: link itself first.
+window.addEventListener(
   "click",
   async (e) => {
     // isTrusted: only a real click by the user, never one a page script fakes with a.click().
-    if (!e.isTrusted || e.button !== 0 || e.altKey || e.defaultPrevented) return;
+    if (!e.isTrusted || e.button !== 0 || e.altKey) return;
     const link = e.target instanceof Element && e.target.closest(PHONE_TARGET);
     if (!link) return;
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     toast("Sending to your phone…", "pending");
     // Use the link text only when it is the number itself, not e.g. "Call reception".
     // Maps' button also holds an icon, so its aria-label ("Phone: (416) 868-6937") is cleaner.
@@ -58,7 +60,7 @@ document.addEventListener(
     const label = /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
     let result;
     try {
-      result = await chrome.runtime.sendMessage({ type: "call", number: numberOf(link) });
+      result = await chrome.runtime.sendMessage({ type: "call", number: numberOf(link), label });
     } catch {
       // Pages opened before the extension was updated or reloaded lose their connection to it.
       result = { ok: false, error: "the extension was updated. Reload this page and try again" };
