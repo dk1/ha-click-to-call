@@ -171,7 +171,7 @@ function startLinkifying() {
 }
 
 // Off unless turned on in the settings: changing page text can upset some sites.
-chrome.storage.local.get("linkify").then(({ linkify = false }) => {
+chrome.storage.local.get("linkify").then(({ linkify = true }) => {
   if (!linkify) return;
   if (document.body) startLinkifying();
   else document.addEventListener("DOMContentLoaded", startLinkifying, { once: true });

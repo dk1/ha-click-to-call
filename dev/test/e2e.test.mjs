@@ -96,13 +96,13 @@ test("a page that handles clicks first can't take a tel: link click", () =>
     assert.equal(await page.evaluate(() => window.pageGotIt), false);
   }));
 
-test("underlining text-only numbers is off by default, and works when on", async () => {
+test("underlining text-only numbers is on by default, and can be turned off", async () => {
   const html = testPage(`<p id="t">Front desk (905) 555 0142, fax 905-555-0143, order 12345678</p>`);
-  await withChrome({}, async ({ open }) => {
+  await withChrome({ linkify: false }, async ({ open }) => {
     const page = await open(html);
     assert.equal(await page.$$eval("#t a", (a) => a.length), 0);
   });
-  await withChrome({ linkify: true }, async ({ open }) => {
+  await withChrome({}, async ({ open }) => {
     const sent = postsFrom();
     const page = await open(html);
     assert.deepEqual(await page.$$eval("#t a", (a) => a.map((x) => x.getAttribute("href"))), ["tel:9055550142", "tel:9055550143"]);
@@ -222,6 +222,7 @@ test("settings page: no permission prompt, Save checks the address, Try it is pr
     const preview = () => page.$eval("#urlPreview", (el) => el.textContent);
 
     assert.equal(await page.$eval("#testNumber", (el) => el.value), "(555) 555-1234");
+    assert.equal(await page.$eval("#linkify", (el) => el.checked), true, "underlining is on by default");
     assert.equal(await page.$eval("#test", (el) => el.disabled), true, "Try it waits for a saved address");
 
     await type("https:// not an address");
