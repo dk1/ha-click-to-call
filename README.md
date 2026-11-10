@@ -59,13 +59,9 @@ step and nothing downloaded at runtime, so you can read all of it before you loa
 ## Use it
 <img src="docs/screenshots/page-number.png" width="480" alt="Phone numbers on a web page with a dotted underline.">
 
-- Click any phone number, including business numbers on Google Search and Google Maps.
-- Numbers that are only text get a dotted underline, so they can be clicked too. If a site doesn't handle that well,
-  turn off **Make phone numbers without a `tel:` link clickable** in the extension's settings.
-- Or select a number, right-click and choose **Call … on phone**.
-- A message at the bottom of the page confirms it was sent. Your phone buzzes and opens the dialer. If the
-  dialer doesn't open, tap the notification.
-- Hold Alt (Option on a Mac) when you click to use your desktop's own phone app instead.
+- Click any phone number, or select a number, right-click and choose **Call … on phone**.
+- A message at the bottom of the page confirms the number was sent to your phone.
+- Your phone buzzes and the dialer opens, ready for you to call.
 
 ## Troubleshooting
 - **The phone shows a permission prompt instead of the dialer:** allow the Home Assistant app to Display over
