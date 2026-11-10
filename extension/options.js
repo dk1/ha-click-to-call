@@ -14,11 +14,11 @@ $("importBlueprint").href =
 // A DNS name (labels of letters, digits and inner hyphens), an IPv4 address, or a bracketed IPv6 address.
 const HOST = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*|\[[0-9a-f:.]+\])$/i;
 
-// Home Assistant serves its app manifest without signing in, so it shows the address is right.
-async function isHomeAssistant(origin) {
+// Without access to the address the reply can't be read, so this only shows something answers there.
+async function isReachable(origin) {
   try {
-    const res = await fetch(`${origin}/manifest.json`, { signal: AbortSignal.timeout(5000) });
-    return res.ok && /home assistant/i.test((await res.json()).name);
+    await fetch(`${origin}/manifest.json`, { mode: "no-cors", signal: AbortSignal.timeout(5000) });
+    return true;
   } catch {
     return false;
   }
@@ -75,19 +75,8 @@ function resolve(split) {
   return { url: `${url.origin}/api/webhook/${id}`, origin: url.origin };
 }
 
-// Before Save, say why Chrome is about to ask for access, if it will.
-let permCheck = 0;
-async function showPermissionNeeded(origin) {
-  const check = ++permCheck;
-  const needed = !!origin && !(await chrome.permissions.contains({ origins: [`${origin}/*`] }));
-  if (check !== permCheck) return; // A later keystroke has already checked.
-  $("permNote").hidden = !needed;
-  $("save").textContent = needed ? "Save and allow access" : "Save";
-}
-
 function refresh(split = false) {
   const r = resolve(split);
-  showPermissionNeeded(r.origin);
   const preview = $("urlPreview");
   preview.hidden = !$("haAddress").value.trim();
   preview.textContent = r.error
@@ -112,7 +101,10 @@ chrome.storage.local.get(["webhookUrl", "haAddress", "webhookId", "linkify"]).th
   $("webhookId").value = id || newId();
   $("haAddress").value = address || "";
   $("linkify").checked = s.linkify ?? false;
-  showLinkifyExample();
+  clickingOn().then((on) => {
+    $("clickToCall").checked = on;
+    showSettings();
+  });
   if ($("haAddress").value) refresh(true);
 });
 
@@ -135,10 +127,6 @@ $("newId").addEventListener("click", () => {
 $("save").addEventListener("click", async () => {
   const r = refresh(true);
   if (r.error) return status("saveStatus", r.error, false);
-  // Must run inside the click handler so the browser shows the permission prompt.
-  const granted = await chrome.permissions.request({ origins: [`${r.origin}/*`] });
-  if (!granted) return status("saveStatus", `Permission to reach ${r.origin} was denied.`, false);
-  showPermissionNeeded(r.origin);
   await chrome.storage.local.set({
     webhookUrl: r.url,
     haAddress: $("haAddress").value.trim(),
@@ -146,14 +134,11 @@ $("save").addEventListener("click", async () => {
   });
   // Drop settings from the earlier token-based version.
   await chrome.storage.local.remove(["haUrl", "token", "service", "action"]);
-  // Give up access to the previous address, so the extension can only reach the current one.
-  const before = savedUrl && new URL(savedUrl).origin;
-  if (before && before !== r.origin) await chrome.permissions.remove({ origins: [`${before}/*`] }).catch(() => {});
   setSaved(r.url);
   if (r.custom) return status("saveStatus", "Saved");
   status("saveStatus", "Saved. Checking the address…");
-  if (await isHomeAssistant(r.origin)) status("saveStatus", "Saved. Home Assistant answered.");
-  else status("saveStatus", `Saved, but Home Assistant didn't answer at ${r.origin}. Check the address, or try again from home if it's a home address.`, false);
+  if (await isReachable(r.origin)) status("saveStatus", `Saved. ${r.origin} is reachable.`);
+  else status("saveStatus", `Saved, but nothing answered at ${r.origin}. Check the address, or try again from home if it's a home address.`, false);
 });
 
 $("test").addEventListener("click", async () => {
@@ -163,15 +148,52 @@ $("test").addEventListener("click", async () => {
   else status("testStatus", r?.error || "Failed.", false);
 });
 
-// The examples under the setting show what it changes; they don't send anything.
-function showLinkifyExample() {
-  const on = $("linkify").checked;
-  $("plainExample").classList.toggle("on", on);
-  $("plainExampleNote").textContent = on ? "clickable, with a dotted underline" : "not clickable";
+// Clicking to send needs the click script on every site, so it asks for access to all
+// sites when turned on and gives it back when turned off. Right-click needs neither.
+const ALL_SITES = { origins: ["<all_urls>"] };
+const CLICK_SCRIPT = {
+  id: "click-to-call",
+  matches: ["<all_urls>"],
+  js: ["toast.js", "content.js"],
+  runAt: "document_start",
+  allFrames: true,
+};
+
+async function clickingOn() {
+  const [granted, scripts] = await Promise.all([
+    chrome.permissions.contains(ALL_SITES),
+    chrome.scripting.getRegisteredContentScripts({ ids: [CLICK_SCRIPT.id] }),
+  ]);
+  return granted && scripts.length > 0;
+}
+
+// The examples under the settings show what they change; they don't send anything.
+function showSettings() {
+  const click = $("clickToCall").checked;
+  const linkify = click && $("linkify").checked;
+  $("linkify").disabled = !click;
+  $("linkExampleNote").textContent = click ? "click it" : "right-click it, then Call on phone";
+  $("plainExample").classList.toggle("on", linkify);
+  $("plainExampleNote").textContent = linkify ? "click it (dotted underline)" : "select it, right-click, then Call on phone";
 }
 document.querySelectorAll("a.example").forEach((a) => a.addEventListener("click", (e) => e.preventDefault()));
 
+$("clickToCall").addEventListener("change", async () => {
+  const box = $("clickToCall");
+  if (box.checked) {
+    // Must be asked straight from the click, so Chrome shows its prompt.
+    if (await chrome.permissions.request(ALL_SITES)) {
+      await chrome.scripting.unregisterContentScripts({ ids: [CLICK_SCRIPT.id] }).catch(() => {});
+      await chrome.scripting.registerContentScripts([CLICK_SCRIPT]);
+    } else box.checked = false;
+  } else {
+    await chrome.scripting.unregisterContentScripts({ ids: [CLICK_SCRIPT.id] }).catch(() => {});
+    await chrome.permissions.remove(ALL_SITES);
+  }
+  showSettings();
+});
+
 $("linkify").addEventListener("change", () => {
   chrome.storage.local.set({ linkify: $("linkify").checked });
-  showLinkifyExample();
+  showSettings();
 });

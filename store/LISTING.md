@@ -26,9 +26,9 @@ Dial a number on your phone from your browser.
 
 Click a phone number on any web page and your Android phone opens the dialer with the number ready to call. The number goes through your own Home Assistant, using a blueprint and the Home Assistant Companion app on your phone.
 
-• Works with phone number links, and optionally with numbers that are only text (shown with a dotted underline)
-• Select a number, right-click and choose "Call … on phone"
-• Hold Alt (Option on a Mac) to use your computer's own phone app instead
+• Right-click a phone number link, or a number you've selected, and choose "Call on phone"
+• Optionally, send phone links with a plain click, and make numbers that are only text clickable too
+• Needs no access to the sites you visit unless you turn on clicking
 • Works at home and away with Nabu Casa or any remote address
 
 What you need:
@@ -46,25 +46,29 @@ Not affiliated with Home Assistant or the Open Home Foundation.
 ## Chrome Web Store: Privacy practices tab
 
 **Single purpose:**
-Sends a phone number the user clicks on a web page to the user's own Home Assistant, which opens the dialer on
+Sends a phone number the user chooses on a web page to the user's own Home Assistant, which opens the dialer on
 their Android phone.
 
 **storage:**
 Saves the user's Home Assistant address, webhook ID and the setting for underlining phone numbers.
 
 **contextMenus:**
-Adds a "Call … on phone" item when the user selects a phone number and right-clicks.
+Adds a "Call on phone" item when the user right-clicks a phone number link or selected text. This is the main way
+to use the extension.
 
-**Host permission** (optional `http://*/*`, `https://*/*`):
-Every user has a different Home Assistant address (a Nabu Casa URL, a home IP address or their own domain), so it
-can't be listed in advance. The extension asks for access to that one address when the user saves it, gives up
-access to the previous address when it changes, and only sends the clicked phone number to it.
+**activeTab:**
+After the user chooses "Call on phone", shows a short "Sent to your phone" message on that page.
 
-**Content script on all URLs:**
-Phone numbers can be on any site, so the content script has to run on all of them. That's why Chrome shows "Read
-and change all your data on all websites" at install. The script only handles real user clicks on `tel:` links.
-If the user turns on the optional setting (off by default), it also underlines numbers that are only text so
-they can be clicked. Page content is never stored or sent; nothing is sent until the user clicks a number.
+**scripting:**
+Injects that message after a right-click call (with activeTab). If the user turns on the optional click setting,
+registers the click handler with registerContentScripts.
+
+**Optional host permission `<all_urls>`:**
+Not requested at install. Only if the user turns on "Send phone number links to your phone when you click them":
+the click handler has to be on a page before the user clicks a link, and phone numbers can be on any site. It only
+acts on real clicks on `tel:` links (and, with a second optional setting, underlines numbers that are only text).
+Turning the setting off removes the permission. The number is sent to the user's own Home Assistant with a plain
+form POST, which needs no host permission.
 
 **Remote code:** No, I am not using remote code.
 
@@ -73,6 +77,7 @@ server. Tick all three certifications (not sold, not used for unrelated purposes
 
 **Notes for the reviewer** (optional field):
 To try it without Home Assistant, open the settings page, enter any address such as https://example.com and
-select Save, then click a phone number on any page. The request goes to
-https://example.com/api/webhook/<id>, so the page shows "Home Assistant replied with an error (405)". That confirms the click was handled and sent.
+select Save. Then right-click a phone number link on any page (or select a number and right-click) and choose
+"Call on phone". The number is posted to https://example.com/api/webhook/<id> and the page shows "Sent … to your
+phone". To try clicking, turn on the first setting under Settings and allow the prompt.
 

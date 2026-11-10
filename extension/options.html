@@ -57,6 +57,7 @@
     .status.err { color: var(--err); }
     .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 0; }
     .check input { margin-top: 3px; }
+    .check:has(input:disabled) { color: var(--muted); }
     .split { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
     .split ol { margin: 0; }
     .shot { display: block; width: 100%; border: 1px solid var(--border); border-radius: 8px; }
@@ -120,9 +121,6 @@
       <input id="haAddress" type="url" spellcheck="false" placeholder="https://xxxx.ui.nabu.casa">
       <button id="save" class="primary" type="button">Save</button>
     </div>
-    <p class="hint" id="permNote" style="margin:6px 0 0" hidden>Chrome will ask permission for this extension to
-      "read and change your data" on this server. This permission means the extension can send the phone number
-      from your browser to your Home Assistant server.</p>
     <div class="status" id="saveStatus" role="status" style="margin-top:6px"></div>
     <div class="preview mono muted" id="urlPreview" hidden></div>
   </section>
@@ -147,15 +145,22 @@
 
   <section>
     <h2>Settings</h2>
-    <label class="check"><input id="linkify" type="checkbox">
-      <span>Make phone numbers without a <code>tel:</code> link clickable
-        <span class="hint">Phone number links (<code>href="tel:…"</code>) always work. This also turns numbers that are only
-          text into links. Reload a page to see the change.</span></span>
+    <p class="muted" style="margin:0 0 4px">Right-click a phone number, or select one and right-click, then choose
+      <b>Call on phone</b>. That always works and needs no extra access.</p>
+    <label class="check" style="margin-top:12px"><input id="clickToCall" type="checkbox">
+      <span>Send phone number links to your phone when you click them
+        <span class="hint">Chrome then asks to let the extension "read and change all your data on all websites": it has
+          to be on a page before you click a link. It only acts on phone number links (<code>href="tel:…"</code>)
+          you click, and reads nothing else. Reload a page to see the change.</span></span>
+    </label>
+    <label class="check" style="margin-top:12px"><input id="linkify" type="checkbox">
+      <span>Also make phone numbers without a <code>tel:</code> link clickable
+        <span class="hint">Turns numbers that are only text into links. Needs the setting above.</span></span>
     </label>
     <!-- Examples only: content scripts don't run on extension pages, and these send nothing. -->
     <div class="examples" aria-label="Examples">
       <div><span class="muted">Phone link:</span> <a class="example" href="tel:+14165550199">(416) 555-0199</a>
-        <span class="muted">always clickable</span></div>
+        <span class="muted" id="linkExampleNote"></span></div>
       <div><span class="muted">Text only:</span> <span class="example" id="plainExample">(905) 555-0142</span>
         <span class="muted" id="plainExampleNote"></span></div>
     </div>

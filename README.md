@@ -59,20 +59,23 @@ step and nothing downloaded at runtime, so you can read all of it before you loa
 ## Use it
 <img src="docs/screenshots/page-number.png" width="480" alt="Phone numbers on a web page with a dotted underline.">
 
-- Click any phone number link.
-- To also click numbers that are only text, turn on **Make phone numbers without a `tel:` link clickable** in the
-  extension's settings. They get a dotted underline. It's off by default because it changes the page, which a few
-  sites don't handle well.
-- Or select a number, right-click and choose **Call … on phone**.
+- Right-click a phone number link and choose **Call on phone**. For a number that's only text, select it first.
 - A message at the bottom of the page confirms it was sent. Your phone buzzes and opens the dialer. If the
   dialer doesn't open, tap the notification.
-- Hold Alt (Option on a Mac) when you click to use your desktop's own phone app instead.
+- To send a phone number link with a plain click instead, turn on **Send phone number links to your phone when you
+  click them** in the extension's settings. Chrome then asks to let the extension read and change your data on all
+  websites, because it has to be on a page before you click. It's off by default so the extension needs no access
+  to the sites you visit.
+- With clicking on, you can also turn on **Also make phone numbers without a `tel:` link clickable**. Those numbers
+  get a dotted underline. It's off by default because it changes the page, which a few sites don't handle well.
+- With clicking on, hold Alt (Option on a Mac) when you click to use your desktop's own phone app instead.
 
 ## Troubleshooting
 - **The phone shows a permission prompt instead of the dialer:** allow the Home Assistant app to Display over
   other apps.
 - **"Sent", but nothing happens on the phone:** open the automation in Home Assistant and check its traces.
-  Home Assistant accepts any webhook ID, so a mistyped ID still shows as "Sent".
+  "Sent" means the number reached the address. The extension can't read Home Assistant's reply, and Home
+  Assistant accepts any webhook ID anyway, so a mistyped address path or ID still shows as "Sent".
 - **Works at home but not away:** a home address like `http://homeassistant.local:8123` only works on your
   home network. Use your Nabu Casa URL instead, and turn off **Only accept calls from the local network** in the
   automation.
@@ -84,8 +87,9 @@ The automation's **Behavior** section lets you place the call straight away inst
 (the Home Assistant app then needs the Phone permission), and change how long the notification stays.
 
 ## Privacy
-The extension stores only your Home Assistant address and webhook ID, and sends only the number you click, to
-your Home Assistant. It never sees a Home Assistant password or token. Anyone who knows
+The extension stores only your Home Assistant address and webhook ID, and sends only the number you choose, to
+your Home Assistant. It needs no access to the sites you visit unless you turn on clicking. It never sees a Home
+Assistant password or token. Anyone who knows
 the webhook ID can open your phone's dialer, so treat it like a password. The automation accepts digits only,
 so nothing else can be sent to your phone. See the [privacy policy](PRIVACY.md).
 

@@ -33,14 +33,14 @@ const css = `
 // 1280×800: what every store accepts.
 const screens = {
   "1-click-to-dial": {
-    title: "Click a number. Your phone dials it.",
-    sub: "Any phone number on a web page goes to your Android phone through Home Assistant.",
+    title: "Choose a number. Your phone dials it.",
+    sub: "Right-click a phone number, choose Call on phone, and your Android phone opens the dialer.",
     body: `<img src="${img("page-sent")}" style="max-width:820px"><span class="arrow">→</span>
            <img src="${img("phone-dialer")}" style="height:100%">`,
   },
   "2-any-number": {
     title: "Works on any page",
-    sub: "Phone links work right away. Turn on one setting to make numbers that are only text clickable too.",
+    sub: "Turn on clicking to send phone links with a plain click, and numbers that are only text too.",
     body: `<img src="${img("page-number")}" style="max-width:1000px">`,
   },
   "3-blueprint": {
@@ -50,7 +50,7 @@ const screens = {
   },
   "4-connect": {
     title: "No passwords or tokens",
-    sub: "The extension only knows your webhook address. It works at home and away with Nabu Casa.",
+    sub: "The extension only knows your webhook address, and needs no access to the sites you visit.",
     body: `<img src="${img("settings-step3")}" style="max-width:900px">`,
   },
   "5-phone": {

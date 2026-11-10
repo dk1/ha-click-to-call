@@ -1,38 +1,6 @@
-// Small status toast, in a shadow root so page CSS can't touch it. Kept by reference
-// rather than looked up by ID, so an element the page makes can't stand in for it.
-let toastTimer;
-let toastHost;
-let toastEl;
-function toast(text, kind) {
-  if (!toastHost) {
-    toastHost = document.createElement("div");
-    toastHost.attachShadow({ mode: "open" }).innerHTML = `
-      <style>
-        div { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-              z-index: 2147483647; padding: 10px 16px; border-radius: 8px;
-              font: 14px/1.3 system-ui, sans-serif; color: #fff; background: #333;
-              box-shadow: 0 4px 16px rgba(0,0,0,.25); transition: opacity .2s; }
-        .ok { background: #2e7d32; }
-        .error { background: #c62828; }
-        .hidden { opacity: 0; pointer-events: none; }
-      </style>
-      <div class="hidden" role="status"></div>`;
-    toastEl = toastHost.shadowRoot.querySelector("div");
-  }
-  if (!toastHost.isConnected) document.documentElement.append(toastHost);
-  const el = toastEl;
-  el.textContent = text;
-  el.className = kind;
-  clearTimeout(toastTimer);
-  if (kind !== "pending") toastTimer = setTimeout(() => (el.className = "hidden"), kind === "error" ? 5000 : 2500);
-}
+const { toast, showResult } = globalThis.haClickToCall; // From toast.js, loaded first.
 
-// `label` is the number as the page showed it, e.g. "(905) 786 0234".
-function showResult(r, label) {
-  if (r?.ok) toast(`📱 Sent ${label || r.number} to your phone`, "ok");
-  else toast(`Couldn't send: ${r?.error || "unknown error"}`, "error");
-}
-
+// Loaded only once clicking is turned on in the settings (see options.js).
 // Intercept clicks on tel: links and hand the number to the background script.
 // Alt/Option-click falls through to the browser's normal tel: handler.
 document.addEventListener(
@@ -59,11 +27,6 @@ document.addEventListener(
   },
   true
 );
-
-// Right-click menu calls are made by the background script, which reports back here.
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === "toast") msg.pending ? toast("Sending to your phone…", "pending") : showResult(msg.result, msg.label);
-});
 
 // Turn plain-text phone numbers into tel: links so the click handler above picks them up.
 // North American numbers need separators or a bracketed area code ("416-555-0199",
@@ -131,14 +94,4 @@ chrome.storage.local.get("linkify").then(({ linkify = false }) => {
   if (!linkify) return;
   if (document.body) startLinkifying();
   else document.addEventListener("DOMContentLoaded", startLinkifying, { once: true });
-});
-
-// Keep the right-click menu item in sync with the current selection.
-let selectionTimer;
-document.addEventListener("selectionchange", () => {
-  clearTimeout(selectionTimer);
-  selectionTimer = setTimeout(() => {
-    const text = String(document.getSelection() || "").slice(0, 100);
-    chrome.runtime.sendMessage({ type: "selection", text }).catch(() => {});
-  }, 100);
 });

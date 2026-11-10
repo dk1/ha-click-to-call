@@ -1,4 +1,6 @@
-const MENU_ID = "ha-click-to-call";
+const LINK_MENU = "call-link";
+const SELECTION_MENU = "call-selection";
+const CLICK_SCRIPT = "click-to-call";
 
 // Keep a leading + and digits; drop formatting, "tel:" params (;ext=…) and whitespace.
 // At least 7 digits, so emergency and short codes (911, 112, 611) are never sent.
@@ -39,15 +41,16 @@ async function sendToPhone(raw) {
     return { ok: false, error: "Finish setting up the extension first" };
   }
 
-  // HA answers 200 for any webhook ID, so success here means "reached Home Assistant".
+  // A plain form POST needs no access to the Home Assistant address (no host permission),
+  // but the reply can't be read, so success means "the request reached the address".
+  // Home Assistant hands form fields to the automation as trigger.data.
   try {
-    const res = await fetch(webhookUrl, {
+    await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ number }),
+      mode: "no-cors",
+      body: new URLSearchParams({ number }),
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return { ok: false, error: `Home Assistant replied with an error (${res.status})` };
     return { ok: true, number };
   } catch (e) {
     if (e.name === "TimeoutError") return { ok: false, error: "Home Assistant didn't answer in time" };
@@ -63,35 +66,51 @@ async function call(raw) {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: MENU_ID,
-    title: "Call on phone",
-    contexts: ["selection"],
-    visible: false,
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({ id: LINK_MENU, title: "Call on phone", contexts: ["link"], targetUrlPatterns: ["tel:*"] });
+    chrome.contextMenus.create({ id: SELECTION_MENU, title: 'Call "%s" on phone', contexts: ["selection"] });
   });
 });
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId !== MENU_ID) return;
-  const toTab = (msg) => tab?.id >= 0 && chrome.tabs.sendMessage(tab.id, msg, info.frameId != null ? { frameId: info.frameId } : {}).catch(() => {});
-  toTab({ type: "toast", pending: true });
-  const label = info.selectionText.replace(/\s+/g, " ").trim();
-  toTab({ type: "toast", result: await call(info.selectionText), label: label.length <= 30 ? label : null });
-});
+// Show the result on the page. The menu click grants activeTab for this tab, which is
+// all the access this needs.
+async function showOnPage(tab, frameId, ...args) {
+  const target = { tabId: tab.id, frameIds: [frameId ?? 0] };
+  try {
+    await chrome.scripting.executeScript({ target, files: ["toast.js"] });
+    await chrome.scripting.executeScript({
+      target,
+      func: (kind, result, label) =>
+        kind === "pending" ? globalThis.haClickToCall.toast("Sending to your phone…", "pending")
+          : globalThis.haClickToCall.showResult(result, label),
+      args,
+    });
+  } catch {} // Pages Chrome doesn't let extensions touch (the Web Store, chrome://); the badge still shows it.
+}
+
+async function onMenuClick(info, tab) {
+  const raw = info.menuItemId === LINK_MENU ? info.linkUrl?.replace(/^tel:/i, "") : info.selectionText;
+  if (!raw) return;
+  // A selection is shown as the user selected it; a link only has its tel: number.
+  const shown = info.menuItemId === SELECTION_MENU ? raw.replace(/\s+/g, " ").trim() : "";
+  const label = /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
+  if (tab?.id >= 0) showOnPage(tab, info.frameId, "pending");
+  const result = await call(raw);
+  if (tab?.id >= 0) showOnPage(tab, info.frameId, "result", result, label);
+}
+chrome.contextMenus.onClicked.addListener(onMenuClick);
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  // Show the cleaned-up number in the menu, and hide it when the selection has none.
-  if (msg?.type === "selection") {
-    const number = normalize(msg.text);
-    chrome.contextMenus.update(MENU_ID, {
-      visible: !!number,
-      title: number ? `Call ${number} on phone` : "Call on phone",
-    });
-    return;
-  }
   if (msg?.type !== "call") return;
   call(msg.number).then(sendResponse);
   return true;
+});
+
+// Clicking needs access to all sites. If it's taken away (chrome://extensions), stop the
+// click script too, so the settings page and the browser agree.
+chrome.permissions.onRemoved.addListener(async ({ origins = [] }) => {
+  if (!origins.includes("<all_urls>")) return;
+  await chrome.scripting.unregisterContentScripts({ ids: [CLICK_SCRIPT] }).catch(() => {});
 });
 
 chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
