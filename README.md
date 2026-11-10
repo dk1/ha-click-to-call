@@ -59,7 +59,7 @@ step and nothing downloaded at runtime, so you can read all of it before you loa
 ## Use it
 <img src="docs/screenshots/page-number.png" width="480" alt="Phone numbers on a web page with a dotted underline.">
 
-- Click any phone number link. Numbers that a site opens in your computer's phone app from its own code, like a business's number on Google Search, are sent too, and so is a place's number on Google Maps.
+- Click any phone number, including business numbers on Google Search and Google Maps.
 - Numbers that are only text get a dotted underline, so they can be clicked too. If a site doesn't handle that well,
   turn off **Make phone numbers without a `tel:` link clickable** in the extension's settings.
 - Or select a number, right-click and choose **Call … on phone**.
