@@ -82,11 +82,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Show the cleaned-up number in the menu, and hide it when the selection has none.
+  // Show the number as the page writes it, e.g. "(905) 555-0142", which is easier to read
+  // than the digits that are sent; fall back to the digits for long selections.
   if (msg?.type === "selection") {
     const number = normalize(msg.text);
+    const shown = String(msg.text).replace(/\s+/g, " ").trim();
     chrome.contextMenus.update(MENU_ID, {
       visible: !!number,
-      title: number ? `Call ${number} on phone` : "Call on phone",
+      title: number ? `Call ${shown.length <= 30 ? shown : number} on phone` : "Call on phone",
     });
     return;
   }
