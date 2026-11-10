@@ -33,48 +33,76 @@ function showResult(r, label) {
   else toast(`Couldn't send: ${r?.error || "unknown error"}`, "error");
 }
 
-// Phone links, plus two Google ones that open the dialer from the page's own code:
-// - Google Maps' "Copy phone number" button, with the number in data-item-id="phone:tel:+1…"
-// - Google Search's business panel number, an <a href="#" data-dtype="d3ph"> with the number as its text
-const PHONE_TARGET = 'a[href^="tel:" i], [data-item-id^="phone:tel:"], a[data-dtype="d3ph"]';
-function numberOf(el) {
-  const href = el.getAttribute("href") ?? "";
-  if (/^tel:/i.test(href)) return href.slice(4);
-  const item = el.getAttribute("data-item-id") ?? "";
-  if (item.startsWith("phone:tel:")) return item.slice("phone:tel:".length);
-  return el.textContent;
+// Phone links, plus Google Maps' "Copy phone number" button, which copies rather than
+// opening the dialer and holds the number in data-item-id="phone:tel:+1…". Pages that open
+// the dialer from their own code (Google Search, for one) are caught further down.
+const PHONE_TARGET = 'a[href^="tel:" i], [data-item-id^="phone:tel:"]';
+const numberOf = (el) =>
+  el.matches("a") ? el.getAttribute("href").slice(4) : el.getAttribute("data-item-id").slice("phone:tel:".length);
+
+// `label` is the number as the page showed it, when that's all the text is.
+const labelOf = (text) => {
+  const shown = String(text ?? "").replace(/\s+/g, " ").trim();
+  return /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
+};
+
+async function send(number, label) {
+  toast("Sending to your phone…", "pending");
+  let result;
+  try {
+    result = await chrome.runtime.sendMessage({ type: "call", number, label });
+  } catch {
+    // Pages opened before the extension was updated or reloaded lose their connection to it.
+    result = { ok: false, error: "the extension was updated. Reload this page and try again" };
+  }
+  showResult(result, label);
 }
+
+// The text of what the user last clicked, to check that a page opening the dialer is
+// opening the number the user clicked on (see below).
+let lastClick = { time: 0, text: "" };
 
 // Intercept clicks on phone links and hand the number to the background script.
 // Alt/Option-click falls through to the page's own handling (the tel: handler, or Maps' copy).
 // On the window, in the capture phase, from document_start: that runs before any listener the
-// page adds, so a page (Google Search, for one) can't open the tel: link itself first.
+// page adds, so a page can't open the tel: link itself first.
 window.addEventListener(
   "click",
-  async (e) => {
+  (e) => {
     // isTrusted: only a real click by the user, never one a page script fakes with a.click().
     if (!e.isTrusted || e.button !== 0 || e.altKey) return;
+    if (e.target instanceof Element) {
+      const el = e.target.closest("a, button, [role=button], [role=link]") ?? e.target;
+      const labels = [el, ...el.querySelectorAll("[aria-label]")].map((n) => n.getAttribute("aria-label") ?? "");
+      lastClick = { time: Date.now(), text: `${el.textContent} ${labels.join(" ")}`.slice(0, 500) };
+    }
     const link = e.target instanceof Element && e.target.closest(PHONE_TARGET);
     if (!link) return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    toast("Sending to your phone…", "pending");
-    // Use the link text only when it is the number itself, not e.g. "Call reception".
     // Maps' button also holds an icon, so its aria-label ("Phone: (416) 868-6937") is cleaner.
-    const text = link.matches("a") ? link.textContent : (link.getAttribute("aria-label") ?? "").replace(/^[^:]*:/, "");
-    const shown = text.replace(/\s+/g, " ").trim();
-    const label = /\d{3}/.test(shown) && shown.length <= 30 ? shown : null;
-    let result;
-    try {
-      result = await chrome.runtime.sendMessage({ type: "call", number: numberOf(link), label });
-    } catch {
-      // Pages opened before the extension was updated or reloaded lose their connection to it.
-      result = { ok: false, error: "the extension was updated. Reload this page and try again" };
-    }
-    showResult(result, label);
+    send(numberOf(link), labelOf(link.matches("a") ? link.textContent : (link.getAttribute("aria-label") ?? "").replace(/^[^:]*:/, "")));
   },
   true
 );
+
+// Pages that open the dialer from their own code, e.g. Google Search's business panel, a
+// link to "#" whose click handler sets location.href to tel:. Chrome reports that as a
+// navigation, which can be cancelled. Only taken over right after a real click on something
+// that shows the same number, so a page can't turn a click into sending a different number.
+globalThis.navigation?.addEventListener("navigate", (e) => {
+  const url = e.destination.url;
+  if (!/^tel:/i.test(url) || !e.cancelable || !navigator.userActivation?.isActive) return;
+  if (Date.now() - lastClick.time > 1000) return;
+  const number = decodeURIComponent(url.slice(4)).split(/[;?]/)[0];
+  const digits = number.replace(/\D/g, "");
+  // The last 10 digits, so "+1 905…" opened from "(905) …" still matches.
+  const tail = digits.length > 10 ? digits.slice(-10) : digits;
+  if (tail.length < 7 || !lastClick.text.replace(/\D/g, "").includes(tail)) return;
+  e.preventDefault();
+  const shown = lastClick.text.match(/[+(]?\d[\d\s().‐‑‒–-]{5,}\d/g)?.find((m) => m.replace(/\D/g, "").endsWith(tail));
+  send(number, labelOf(shown));
+});
 
 // Right-click menu calls are made by the background script, which reports back here.
 chrome.runtime.onMessage.addListener((msg) => {
