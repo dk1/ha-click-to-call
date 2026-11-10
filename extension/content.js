@@ -142,11 +142,18 @@ chrome.storage.local.get("linkify").then(({ linkify = false }) => {
 });
 
 // Keep the right-click menu item in sync with the current selection.
+// After the extension is reloaded or updated, this copy of the script stays on open pages
+// but can no longer reach it: chrome.runtime.id goes away and sendMessage throws at once
+// (not as a rejected promise), so check first and stop listening.
 let selectionTimer;
-document.addEventListener("selectionchange", () => {
+function syncSelection() {
   clearTimeout(selectionTimer);
   selectionTimer = setTimeout(() => {
+    if (!chrome.runtime?.id) return document.removeEventListener("selectionchange", syncSelection);
     const text = String(document.getSelection() || "").slice(0, 100);
-    chrome.runtime.sendMessage({ type: "selection", text }).catch(() => {});
+    try {
+      chrome.runtime.sendMessage({ type: "selection", text }).catch(() => {});
+    } catch {}
   }, 100);
-});
+}
+document.addEventListener("selectionchange", syncSelection);
