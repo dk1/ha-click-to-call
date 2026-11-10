@@ -16,7 +16,8 @@ browser. Page content, addresses and browsing history are never stored or sent.
 **What it doesn't do.** No analytics, no tracking, no ads, no accounts, and no data sold or shared. The developer
 receives no data from the extension. It never sees a Home Assistant password or token.
 
-**Permissions.** Access to your Home Assistant address is requested when you save it, for that address only. Access to a previous address is given up when you change it.
+**Permissions.** The number is sent to your Home Assistant as a plain form, which needs no access to that
+address. The extension runs on all sites only to handle clicks on phone number links.
 
 **Questions.** Open an issue at https://github.com/dk1/ha-click-to-call/issues.
 

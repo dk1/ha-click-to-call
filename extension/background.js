@@ -39,15 +39,16 @@ async function sendToPhone(raw) {
     return { ok: false, error: "Finish setting up the extension first" };
   }
 
-  // HA answers 200 for any webhook ID, so success here means "reached Home Assistant".
+  // A plain form POST needs no access to the Home Assistant address (no host permission),
+  // but the reply can't be read, so success means "the request reached the address".
+  // Home Assistant hands form fields to the automation as trigger.data.
   try {
-    const res = await fetch(webhookUrl, {
+    await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ number }),
+      mode: "no-cors",
+      body: new URLSearchParams({ number }),
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return { ok: false, error: `Home Assistant replied with an error (${res.status})` };
     return { ok: true, number };
   } catch (e) {
     if (e.name === "TimeoutError") return { ok: false, error: "Home Assistant didn't answer in time" };

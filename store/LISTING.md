@@ -55,10 +55,9 @@ Saves the user's Home Assistant address, webhook ID and the setting for underlin
 **contextMenus:**
 Adds a "Call … on phone" item when the user selects a phone number and right-clicks.
 
-**Host permission** (optional `http://*/*`, `https://*/*`):
-Every user has a different Home Assistant address (a Nabu Casa URL, a home IP address or their own domain), so it
-can't be listed in advance. The extension asks for access to that one address when the user saves it, gives up
-access to the previous address when it changes, and only sends the clicked phone number to it.
+**Sending to Home Assistant:**
+The number goes to the user's own Home Assistant webhook as a plain form POST, which needs no host permission.
+Apart from the content script below, the extension declares no host permissions.
 
 **Content script on all URLs:**
 Phone numbers can be on any site, so the content script has to run on all of them. That's why Chrome shows "Read
@@ -74,5 +73,5 @@ server. Tick all three certifications (not sold, not used for unrelated purposes
 **Notes for the reviewer** (optional field):
 To try it without Home Assistant, open the settings page, enter any address such as https://example.com and
 select Save, then click a phone number on any page. The request goes to
-https://example.com/api/webhook/<id>, so the page shows "Home Assistant replied with an error (405)". That confirms the click was handled and sent.
+https://example.com/api/webhook/<id>, and the page shows "Sent … to your phone". That confirms the click was handled and sent.
 
