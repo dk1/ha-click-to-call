@@ -100,7 +100,7 @@ chrome.storage.local.get(["webhookUrl", "haAddress", "webhookId", "linkify"]).th
   }
   $("webhookId").value = id || newId();
   $("haAddress").value = address || "";
-  $("linkify").checked = s.linkify ?? false;
+  $("linkify").checked = s.linkify ?? true;
   showLinkifyExample();
   if ($("haAddress").value) refresh(true);
 });
