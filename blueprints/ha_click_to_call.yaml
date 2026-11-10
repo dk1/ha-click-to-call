@@ -101,6 +101,12 @@ variables:
   screen_sensor: !input screen_sensor
   dial_action: !input dial_action
   notification_timeout: !input notification_timeout
+  # The number as "tel:<number>". The extension sends it as a form field (trigger.data);
+  # earlier versions sent JSON (trigger.json). The tel: prefix keeps it text: a bare
+  # "+1416…" would be turned into an integer.
+  tel_uri: >-
+    tel:{{ (trigger.json if trigger.json is defined and trigger.json is mapping
+            else trigger.data | default({})).get('number', '') }}
 
 triggers:
   - trigger: webhook
@@ -110,12 +116,9 @@ triggers:
 
 conditions:
   # Only 7 to 15 digits with an optional + reach the intent, so emergency and short
-  # codes (911, 112) are never dialed. Read straight from
-  # trigger.json: a rendered variable would turn "+1416…" into an integer.
+  # codes (911, 112) are never dialed.
   - condition: template
-    value_template: >-
-      {{ (trigger.json | default({})).number | default('') | string
-         is match('^\+?[0-9]{7,15}$') }}
+    value_template: "{{ tel_uri is match('^tel:\\+?[0-9]{7,15}$') }}"
 
 actions:
   # Sent through the phone's device, not notify.mobile_app_<name>, so renaming the
@@ -124,21 +127,21 @@ actions:
     type: notify
     device_id: !input phone
     title: Number from browser
-    message: "Dialing {{ trigger.json.number }}"
+    message: "Dialing {{ tel_uri[4:] }}"
     data:
       tag: click-to-call
       channel: Click-to-Call
       importance: high
       vibrationPattern: "0, 150, 100, 150"
       timeout: "{{ notification_timeout }}"
-      clickAction: "intent:{{ trigger.json.number }}#Intent;action=android.intent.action.DIAL;scheme=tel;end"
+      clickAction: "intent:{{ tel_uri[4:] }}#Intent;action=android.intent.action.DIAL;scheme=tel;end"
   - domain: mobile_app
     type: notify
     device_id: !input phone
     message: command_activity
     data:
       intent_action: "android.intent.action.{{ dial_action }}"
-      intent_uri: "tel:{{ trigger.json.number }}"
+      intent_uri: "{{ tel_uri }}"
   # The dialer launch or the buzz often wakes the screen a few seconds later,
   # so wait for it rather than checking once.
   - if:

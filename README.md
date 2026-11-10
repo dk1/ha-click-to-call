@@ -72,7 +72,8 @@ step and nothing downloaded at runtime, so you can read all of it before you loa
 - **The phone shows a permission prompt instead of the dialer:** allow the Home Assistant app to Display over
   other apps.
 - **"Sent", but nothing happens on the phone:** open the automation in Home Assistant and check its traces.
-  Home Assistant accepts any webhook ID, so a mistyped ID still shows as "Sent".
+  "Sent" means the number reached the address. The extension can't read Home Assistant's reply, and Home
+  Assistant accepts any webhook ID anyway, so a mistyped ID still shows as "Sent".
 - **Works at home but not away:** a home address like `http://homeassistant.local:8123` only works on your
   home network. Use your Nabu Casa URL instead, and turn off **Only accept calls from the local network** in the
   automation.
