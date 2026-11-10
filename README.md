@@ -96,4 +96,10 @@ and the Android emulator, so no real data ends up in them. See the comments at t
 and `dev/docker-compose.yml`. `npm run store` in `dev` makes the store zip and listing
 images; see [`store/LISTING.md`](store/LISTING.md).
 
-CI runs `node dev/check-extension.mjs` and `python dev/check-blueprint.py` on every pull request and push to `main`.
+Tests, all run in CI on every pull request and push to `main`:
+- `cd dev && npm test`: unit tests for the number clean-up, and browser tests that load the extension in Chrome
+  for Testing against local test pages and a fake webhook. Install Chrome for Testing once with
+  `npx @puppeteer/browsers install chrome@stable --path .chrome` in `dev`.
+- `python -m unittest dev/test_blueprint.py`: renders the blueprint's templates against sample requests (needs
+  `pyyaml`, `jinja2` and `multidict`).
+- `node dev/check-extension.mjs` and `python dev/check-blueprint.py`: check the manifest and the blueprint's inputs.

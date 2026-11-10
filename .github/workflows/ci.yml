@@ -25,5 +25,21 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - run: pip install pyyaml
+      - run: pip install pyyaml jinja2 multidict
       - run: python dev/check-blueprint.py
+      - run: python -m unittest dev/test_blueprint.py
+
+  # The extension in Chrome for Testing against local test pages (dev/test).
+  browser:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dev
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx --yes @puppeteer/browsers@2 install chrome@stable --path .chrome
+      - run: npm test

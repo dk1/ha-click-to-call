@@ -2,11 +2,12 @@
   "name": "ha-click-to-call-dev",
   "private": true,
   "type": "module",
-  "description": "Tooling for docs screenshots and store images; not part of the extension.",
+  "description": "Tests, docs screenshots and store images; not part of the extension.",
   "scripts": {
     "ha:up": "docker compose up -d && node setup-ha.mjs",
     "screenshots": "node screenshots.mjs",
-    "store": "node store-assets.mjs"
+    "store": "node store-assets.mjs",
+    "test": "node --test --test-concurrency=1 \"test/*.test.mjs\""
   },
   "devDependencies": {
     "puppeteer-core": "^24.43.1"

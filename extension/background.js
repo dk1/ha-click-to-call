@@ -79,13 +79,15 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+// Named so the browser tests can call it: Chrome won't let a script open the menu.
+async function onMenuClick(info, tab) {
   if (info.menuItemId !== MENU_ID) return;
   const toTab = (msg) => tab?.id >= 0 && chrome.tabs.sendMessage(tab.id, msg, info.frameId != null ? { frameId: info.frameId } : {}).catch(() => {});
   toTab({ type: "toast", pending: true });
   const label = info.selectionText.replace(/\s+/g, " ").trim();
   toTab({ type: "toast", result: await call(info.selectionText, label), label: label.length <= 30 ? label : null });
-});
+}
+chrome.contextMenus.onClicked.addListener(onMenuClick);
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Show the cleaned-up number in the menu, and hide it when the selection has none.
@@ -107,4 +109,4 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
 
-if (typeof module !== "undefined") module.exports = { normalize };
+if (typeof module !== "undefined") module.exports = { normalize, cleanLabel };
